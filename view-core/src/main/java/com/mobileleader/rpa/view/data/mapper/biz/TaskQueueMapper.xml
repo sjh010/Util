@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.biz.TaskQueueMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.TaskQueue">
+        <id column="TASK_QUE_SEQ" jdbcType="DECIMAL" property="taskQueueSequence" />
+        <result column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+        <result column="LST_EXEC_DT" jdbcType="TIMESTAMP" property="lastExecuteDateTime" />
+        <result column="NXT_EXEC_DT" jdbcType="TIMESTAMP" property="nextExecuteDateTime" />
+        <result column="TASK_STS_CD" jdbcType="VARCHAR" property="taskStatusCode" />
+    </resultMap>
+    <resultMap id="TaskQueueByWorkMap" type="com.mobileleader.rpa.view.data.dto.TaskQueueByWork" extends="BaseResultMap">
+        <result column="RBT_NM" jdbcType="NVARCHAR" property="robotName" />
+        <result column="TASK_STS_NM" jdbcType="VARCHAR" property="taskStatusName" />
+    </resultMap>
+    
+    <sql id="joinClause">
+        JOIN
+            TB_BZ_RBT R
+        ON
+            R.RBT_SEQ = TQ.RBT_SEQ
+        JOIN 
+            TB_BZ_WRK_ASGN WA
+        ON
+            WA.WRK_SEQ = TQ.WRK_SEQ AND WA.RBT_SEQ = TQ.RBT_SEQ AND WA.RMV_YN = 'N'        
+    </sql>
+    <sql id="whereClause">
+        <where>
+            TQ.WRK_SEQ = #{workSequence, jdbcType=DECIMAL}
+            <if test="robotName != ''">
+            AND R.RBT_NM = #{robotName, jdbcType=NVARCHAR}
+            </if>
+            <if test="taskStatusCode != ''">
+            AND TQ.TASK_STS_CD = #{taskStatusCode, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </sql>
+    <sql id ="sortClause">
+        <choose>
+            <when test="sortKey != null and sortKey != ''">
+                <if test="sortKey == 'robotName'">R.RBT_NM  ${sortOrder}</if>
+                <if test="sortKey == 'lastExecuteDateTime'">TQ.LST_EXEC_DT ${sortOrder}</if>
+                <if test="sortKey == 'nextExecuteDateTime'">TQ.NXT_EXEC_DT ${sortOrder}</if>
+                <if test="sortKey == 'taskStatusName'">C.CD_NM ${sortOrder}</if>
+            </when>
+            <otherwise>
+                TQ.LST_EXEC_DT DESC,
+                R.RBT_NM ASC
+            </otherwise>
+        </choose>
+    </sql>
+    <select id="selectByWork" resultMap="TaskQueueByWorkMap" parameterType="com.mobileleader.rpa.view.model.form.TaskQueueSearchForm">
+    
+    SELECT
+        T2.*
+    FROM (
+        SELECT 
+            ROWNUM RNUM,
+            T.*
+        FROM (
+            SELECT
+                TQ.TASK_QUE_SEQ,
+                R.RBT_SEQ,
+                R.RBT_NM,
+                TQ.LST_EXEC_DT,
+                TQ.NXT_EXEC_DT,
+                TQ.TASK_STS_CD,
+                C.CD_NM AS TASK_STS_NM,
+                TQ.PRCS_VSN_SEQ
+            FROM
+                TB_BZ_TASK_QUE TQ
+                <include refid="joinClause"/>
+            LEFT OUTER JOIN TB_CM_CD C
+            ON C.CD = TQ.TASK_STS_CD AND C.GRP_CD = 'TASK_STS_CD'
+            <include refid="whereClause"/>
+            ORDER BY
+            <include refid="sortClause"/>
+        ) T
+        WHERE ROWNUM &lt;= #{endRowNo, jdbcType=INTEGER}
+    ) T2
+    WHERE T2.RNUM &gt;= #{startRowNo, jdbcType=INTEGER}
+        
+    </select>
+    
+    <select id="selectCountByWork" resultType="java.lang.Integer" parameterType="com.mobileleader.rpa.view.model.form.TaskQueueSearchForm">
+        SELECT
+            COUNT(TQ.TASK_QUE_SEQ)
+        FROM
+            TB_BZ_TASK_QUE TQ
+            <include refid="joinClause"/>
+        <include refid="whereClause"/>
+    </select>
+</mapper>

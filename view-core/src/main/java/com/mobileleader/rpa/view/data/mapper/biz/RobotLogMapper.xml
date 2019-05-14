@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.biz.RobotLogMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.RobotLog">
+        <id column="RBT_LOG_SEQ" jdbcType="DECIMAL" property="robotLogSequence" />
+        <result column="RBT_LOG_TYPE_CD" jdbcType="VARCHAR" property="robotLogTypeCode" />
+        <result column="RBT_NM" jdbcType="NVARCHAR" property="robotName" />
+        <result column="RMK_CTNT" jdbcType="NVARCHAR" property="remarksContent" />
+        <result column="RBT_LOG_STS_CD" jdbcType="VARCHAR" property="robotLogStatusCode" />
+        <result column="LOG_FILE_GRP_SEQ" jdbcType="DECIMAL" property="logFileGroupSequence" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+    </resultMap>
+    
+    <resultMap id="LogResultMap" type="com.mobileleader.rpa.view.data.dto.RobotLogList">
+        <id column="RBT_LOG_SEQ" jdbcType="DECIMAL" property="robotLogSequence" />
+        <result column="RBT_LOG_TYPE_CD" jdbcType="VARCHAR" property="robotLogTypeCode" />
+        <result column="RBT_NM" jdbcType="NVARCHAR" property="robotName" />
+        <result column="RMK_CTNT" jdbcType="NVARCHAR" property="remarksContent" />
+        <result column="RBT_LOG_STS_CD" jdbcType="VARCHAR" property="robotLogStatusCode" />
+        <result column="LOG_FILE_GRP_SEQ" jdbcType="DECIMAL" property="logFileGroupSequence" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        RBT_LOG_SEQ, RBT_LOG_TYPE_CD, RBT_NM, RMK_CTNT, RBT_LOG_STS_CD, LOG_FILE_GRP_SEQ, REG_DT, RBT_SEQ
+    </sql>
+    
+    <select id="selectCount" parameterType="com.mobileleader.rpa.view.model.form.RobotLogSearchForm"
+        resultType="java.lang.Integer">
+        SELECT COUNT(RBT_LOG_SEQ)
+        FROM ( 
+                SELECT ROWNUM RNUM, T.* 
+                FROM (
+                        SELECT 
+                            <include refid="Base_Column_List" />
+                        FROM 
+                            TB_BZ_RBT_LOG
+                        WHERE
+                            RBT_SEQ = #{robotSequence, jdbcType=DECIMAL}
+                            <if test = "registerDateTime != null and registerDateTime != ''">
+                            AND REG_DT BETWEEN TO_DATE(CONCAT(#{registerDateTime, jdbcType=VARCHAR}, ' 000000'), 'YYYY-MM-DD HH24MISS')
+                                           AND TO_DATE(CONCAT(#{registerDateTime, jdbcType=VARCHAR}, ' 235959'), 'YYYY-MM-DD HH24MISS')
+                            </if>
+                            <if test = "robotLogTypeCode != null and robotLogTypeCode != ''">
+                            AND RBT_LOG_TYPE_CD = #{robotLogTypeCode, jdbcType=VARCHAR}
+                            </if>
+                            <if test = "robotLogStatusCode != null and robotLogStatusCode != ''">
+                            AND RBT_LOG_STS_CD = #{robotLogStatusCode, jdbcType=VARCHAR}
+                            </if>
+                        ORDER BY 
+                            RBT_LOG_SEQ DESC
+                     ) T  
+             )     
+    </select>
+    
+    <select id="selectRobotLogList" parameterType="com.mobileleader.rpa.view.model.form.RobotLogSearchForm"
+        resultMap="LogResultMap">
+        SELECT * 
+        FROM ( 
+                SELECT ROWNUM RNUM, T.* 
+                FROM (
+                        SELECT 
+                            <include refid="Base_Column_List" />
+                        FROM 
+                            TB_BZ_RBT_LOG
+                        WHERE
+                            RBT_SEQ = #{robotSequence, jdbcType=DECIMAL}
+                            <if test = "registerDateTime != null and registerDateTime != ''">
+                            AND REG_DT BETWEEN TO_DATE(CONCAT(#{registerDateTime, jdbcType=VARCHAR}, ' 000000'), 'YYYY-MM-DD HH24MISS')
+                                           AND TO_DATE(CONCAT(#{registerDateTime, jdbcType=VARCHAR}, ' 235959'), 'YYYY-MM-DD HH24MISS')
+                            </if>
+                            <if test = "robotLogTypeCode != null and robotLogTypeCode != ''">
+                            AND RBT_LOG_TYPE_CD = #{robotLogTypeCode, jdbcType=VARCHAR}
+                            </if>
+                            <if test = "robotLogStatusCode != null and robotLogStatusCode != ''">
+                            AND RBT_LOG_STS_CD = #{robotLogStatusCode, jdbcType=VARCHAR}
+                            </if>
+                        ORDER BY 
+                            RBT_LOG_SEQ DESC
+                     ) T 
+                WHERE ROWNUM <![CDATA[ <= ]]> #{endRowNo, jdbcType=INTEGER} 
+             ) 
+        WHERE RNUM <![CDATA[ >= ]]> #{startRowNo, jdbcType=INTEGER}
+    </select>
+    
+    <select id="selectRobotLogListForExcel" parameterType="com.mobileleader.rpa.view.model.form.RobotLogSearchForm"
+        resultMap="LogResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM 
+            TB_BZ_RBT_LOG
+        WHERE
+            RBT_SEQ = #{robotSequence, jdbcType=DECIMAL}
+            <if test = "registerDateTime != null and registerDateTime != ''">
+            AND REG_DT BETWEEN TO_DATE(CONCAT(#{registerDateTime, jdbcType=VARCHAR}, ' 000000'), 'YYYY-MM-DD HH24MISS')
+                           AND TO_DATE(CONCAT(#{registerDateTime, jdbcType=VARCHAR}, ' 235959'), 'YYYY-MM-DD HH24MISS')
+            </if>
+            <if test = "robotLogTypeCode != null and robotLogTypeCode != ''">
+            AND RBT_LOG_TYPE_CD = #{robotLogTypeCode, jdbcType=VARCHAR}
+            </if>
+            <if test = "robotLogStatusCode != null and robotLogStatusCode != ''">
+            AND RBT_LOG_STS_CD = #{robotLogStatusCode, jdbcType=VARCHAR}
+            </if>
+        ORDER BY 
+            RBT_LOG_SEQ DESC
+    </select>
+    
+    <select id="selectRobotLogTypeCode" parameterType="java.lang.Integer" resultType="com.mobileleader.rpa.data.dto.common.CommonCode">
+        SELECT 
+            DISTINCT tb_rbt_log.RBT_LOG_TYPE_CD code, tb_cm_cd.CD_NM codeName
+        FROM
+            TB_BZ_RBT_LOG tb_rbt_log
+        LEFT JOIN
+            TB_CM_CD tb_cm_cd
+        ON
+            tb_rbt_log.RBT_LOG_TYPE_CD = tb_cm_cd.CD
+        AND
+            tb_cm_cd.GRP_CD = 'RBT_LOG_TYPE_CD'
+        WHERE
+            tb_rbt_log.RBT_SEQ = #{robotSequence, jdbcType=DECIMAL}
+        ORDER BY
+            tb_rbt_log.RBT_LOG_TYPE_CD
+    </select>
+    
+    <insert id="insert" parameterType="com.mobileleader.rpa.data.dto.biz.RobotLog"
+            useGeneratedKeys="true" keyColumn="RBT_LOG_SEQ" keyProperty="robotLogSequence">
+        <selectKey keyProperty="robotLogSequence" order="BEFORE" resultType="java.lang.Integer">
+            SELECT SQ_RBT_LOG_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_RBT_LOG (
+            RBT_LOG_SEQ,
+            RBT_LOG_TYPE_CD,
+            RBT_NM,
+            RMK_CTNT,
+            RBT_LOG_STS_CD,
+            LOG_FILE_GRP_SEQ,
+            REG_DT,
+            RBT_SEQ
+        ) VALUES (
+            #{robotLogSequence,jdbcType=DECIMAL},
+            #{robotLogTypeCode,jdbcType=VARCHAR},
+            #{robotName,jdbcType=NVARCHAR},
+            #{remarksContent,jdbcType=NVARCHAR},
+            #{robotLogStatusCode,jdbcType=VARCHAR},
+            #{logFileGroupSequence,jdbcType=DECIMAL},
+            SYSDATE,
+            #{robotSequence,jdbcType=DECIMAL}
+        )
+    </insert>
+</mapper>

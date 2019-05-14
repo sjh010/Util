@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.biz.ProcessHistoryMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.ProcessHistory">
+        <id column="PRCS_HSTR_SEQ" jdbcType="DECIMAL" property="processHistorySequence" />
+        <result column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="PRCS_HSTR_TYPE_CD" jdbcType="VARCHAR" property="processHistoryTypeCode" />
+        <result column="RMK_CTNT" jdbcType="OTHER" property="remarksContent" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        PRCS_HSTR_SEQ, PRCS_VSN_SEQ, PRCS_HSTR_TYPE_CD, RMK_CTNT, REG_DT, REG_ID
+    </sql>
+    
+    <insert id="insertHistory" parameterType="com.mobileleader.rpa.data.dto.biz.ProcessHistory">
+        insert into TB_BZ_PRCS_HSTR
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                PRCS_HSTR_SEQ,
+            <if test="processVersionSequence != null">
+                PRCS_VSN_SEQ,
+            </if>
+            <if test="processHistoryTypeCode != null">
+                PRCS_HSTR_TYPE_CD,
+            </if>
+            <if test="remarksContent != null">
+                RMK_CTNT,
+            </if>
+                REG_DT,
+            <if test="registerId != null">
+                REG_ID,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                SQ_PRCS_HSTR_SEQ.NEXTVAL,
+            <if test="processVersionSequence != null">
+                #{processVersionSequence,jdbcType=DECIMAL},
+            </if>
+            <if test="processHistoryTypeCode != null">
+                #{processHistoryTypeCode,jdbcType=VARCHAR},
+            </if>
+            <if test="remarksContent != null">
+                #{remarksContent,jdbcType=OTHER},
+            </if>
+                SYSDATE,
+            <if test="registerId != null">
+                #{registerId,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    
+</mapper>

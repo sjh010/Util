@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.base.UserMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.base.User">
+        <id column="USR_SEQ" jdbcType="DECIMAL" property="userSequence" />
+        <result column="USR_ID" jdbcType="VARCHAR" property="userId" />
+        <result column="USR_PW" jdbcType="VARCHAR" property="userPassword" />
+        <result column="USR_NM" jdbcType="NVARCHAR" property="userName" />
+        <result column="USR_EML" jdbcType="VARCHAR" property="userEmail" />
+        <result column="DPT_NM" jdbcType="NVARCHAR" property="departmentName" />
+        <result column="USE_YN" jdbcType="CHAR" property="useYn" />
+        <result column="PW_RST_YN" jdbcType="CHAR" property="passwordResetYn" />
+        <result column="LST_LGN_DT" jdbcType="TIMESTAMP" property="lastLoginDateTime" />
+        <result column="LST_PW_MOD_DT" jdbcType="TIMESTAMP" property="lastPasswordModifyDateTime" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="MOD_DT" jdbcType="TIMESTAMP" property="modifyDateTime" />
+        <result column="RMV_DT" jdbcType="TIMESTAMP" property="removeDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="ATH_SEQ" jdbcType="DECIMAL" property="authoritySequence" />
+    </resultMap>
+    
+    <resultMap id="AuthorityResultMap" type="com.mobileleader.rpa.data.dto.base.Authority">
+        <result column="ATH_SEQ" jdbcType="DECIMAL" property="authoritySequence" />
+        <result column="ATH_NM" jdbcType="NVARCHAR" property="authorityName" />
+    </resultMap>
+    
+    <resultMap id="UserListResultMap" type="com.mobileleader.rpa.view.data.dto.UserList" extends="BaseResultMap">
+       <result column="ATH_NM" jdbcType="NVARCHAR" property="authorityName" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        USR_SEQ, USR_ID, USR_PW, USR_NM, USR_EML, DPT_NM, USE_YN, PW_RST_YN, LST_LGN_DT,
+        LST_PW_MOD_DT, RMV_YN, REG_DT, MOD_DT, RMV_DT, REG_ID, ATH_SEQ
+    </sql>
+    
+    <select id="selectCount"
+        parameterType="com.mobileleader.rpa.view.model.form.UserSearchForm" resultType="java.lang.Integer">
+        SELECT COUNT(USR_SEQ)
+        FROM (
+              SELECT temp.*, ROWNUM AS RNUM 
+              FROM (
+                    SELECT
+                        tb_user.USR_SEQ, tb_user.USR_ID, tb_user.USR_NM, tb_user.DPT_NM, tb_user.REG_ID, 
+                        tb_user.REG_DT, tb_user.USE_YN, tb_user.ATH_SEQ, tb_auth.ATH_NM
+                    FROM
+                        TB_BS_USR tb_user
+                    LEFT JOIN
+                        TB_BS_ATH tb_auth
+                    ON
+                        tb_user.ATH_SEQ = tb_auth.ATH_SEQ
+                    WHERE 1=1
+                    <if test = "userInfo != null and userInfo != ''">
+                        AND (${userIdQuery}
+                                OR
+                             ${userNameQuery})
+                    </if>
+                    <if test = "departmentName != null and departmentName != ''">
+                        <choose>
+                            <when test = 'departmentName == "none"'>
+                            AND tb_user.DPT_NM IS NULL
+                            </when>
+                            <otherwise>
+                            AND tb_user.DPT_NM = #{departmentName, jdbcType=NVARCHAR}
+                            </otherwise>
+                        </choose>
+                    </if>
+                    <if test = "authoritySequence > 0">
+                        AND tb_user.ATH_SEQ = #{authoritySequence, jdbcType=DECIMAL}
+                    </if>
+                    <if test = "useYn != null and useYn != ''">
+                        AND tb_user.USE_YN = #{useYn, jdbcType=CHAR}
+                    </if>
+                   ) temp
+             )
+    </select>
+    
+    <select id="selectUserList" 
+        parameterType="com.mobileleader.rpa.view.model.form.UserSearchForm" resultMap="UserListResultMap">
+        SELECT * 
+        FROM (
+              SELECT temp.*, ROWNUM AS RNUM 
+              FROM (
+                    SELECT
+                        tb_user.USR_SEQ, tb_user.USR_ID, tb_user.USR_NM, tb_user.DPT_NM, tb_user.REG_ID, 
+                        tb_user.REG_DT, tb_user.USE_YN, tb_user.ATH_SEQ, tb_auth.ATH_NM
+                    FROM
+                        TB_BS_USR tb_user
+                    LEFT JOIN
+                        TB_BS_ATH tb_auth
+                    ON
+                        tb_user.ATH_SEQ = tb_auth.ATH_SEQ
+                    WHERE 1=1
+                    <if test = "userInfo != null and userInfo != ''">
+                        AND (${userIdQuery}
+                                OR
+                             ${userNameQuery})
+                    </if>
+                    <if test = "departmentName != null and departmentName != ''">
+                        <choose>
+                            <when test = 'departmentName == "none"'>
+                            AND tb_user.DPT_NM IS NULL
+                            </when>
+                            <otherwise>
+                            AND tb_user.DPT_NM = #{departmentName, jdbcType=NVARCHAR}
+                            </otherwise>
+                        </choose>
+                    </if>
+                    <if test = "authoritySequence > 0">
+                        AND tb_user.ATH_SEQ = #{authoritySequence, jdbcType=DECIMAL}
+                    </if>
+                    <if test = "useYn != null and useYn != ''">
+                        AND tb_user.USE_YN = #{useYn, jdbcType=CHAR}
+                    </if>
+                    ORDER BY
+                        <choose>
+                            <when test = 'sortKey == "sortUserId"'>
+                            tb_user.USR_ID
+                            </when>
+                            <when test = 'sortKey == "sortUserName"'>
+                            tb_user.USR_NM
+                            </when>
+                            <when test = 'sortKey == "sortDepartmentName"'>
+                            tb_user.DPT_NM
+                            </when>
+                            <when test = 'sortKey == "sortAuthority"'>
+                            tb_auth.ATH_NM
+                            </when>
+                            <when test = 'sortKey == "sortRegisterDateTime"'>
+                            tb_user.REG_DT  
+                            </when>
+                            <when test = 'sortKey == "sortUseYn"'>
+                            tb_user.USE_YN  
+                            </when>
+                        </choose>
+                        <choose>
+                            <when test = 'sortOrder == "desc"'>
+                             DESC
+                            </when>
+                            <when test = 'sortOrder == "asc"'>
+                             ASC
+                            </when>
+                        </choose>
+                   ) temp
+              WHERE 
+                ROWNUM <![CDATA[ <= ]]> #{endRowNo,jdbcType=INTEGER}
+             )
+        WHERE RNUM <![CDATA[ >= ]]> #{startRowNo,jdbcType=INTEGER}
+    </select>
+    
+    <select id="selectDepartmentNameList" resultType="java.lang.String">
+        SELECT
+            DISTINCT DPT_NM
+        FROM
+            TB_BS_USR
+    </select>
+    
+    <select id="selectAuthorityList" resultMap="AuthorityResultMap">
+        SELECT
+            DISTINCT tb_auth.ATH_SEQ, tb_auth.ATH_NM, tb_auth.MOD_DT
+        FROM
+            TB_BS_USR tb_user
+        LEFT JOIN
+            TB_BS_ATH tb_auth
+        ON
+            tb_user.ATH_SEQ = tb_auth.ATH_SEQ
+        ORDER BY
+            tb_auth.MOD_DT DESC
+    </select>
+    
+    <select id="selectByUserId" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT 
+            USR_SEQ
+        FROM
+            TB_BS_USR
+        WHERE
+            USR_ID = #{userId, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertUser" parameterType="com.mobileleader.rpa.data.dto.base.User">
+        INSERT INTO TB_BS_USR
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                USR_SEQ,
+            <if test="userId != null">
+                USR_ID,
+            </if>
+            <if test="userPassword != null">
+                USR_PW,
+            </if>
+            <if test="userName != null">
+                USR_NM,
+            </if>
+            <if test="userEmail != null">
+                USR_EML,
+            </if>
+            <if test="departmentName != null">
+                DPT_NM,
+            </if>
+            <if test="useYn != null">
+                USE_YN,
+            </if>
+                PW_RST_YN,
+            <if test="lastLoginDateTime != null">
+                LST_LGN_DT,
+            </if>
+            <if test="lastPasswordModifyDateTime != null">
+                LST_PW_MOD_DT,
+            </if>
+                RMV_YN,
+                REG_DT,
+            <if test="modifyDateTime != null">
+                MOD_DT,
+            </if>
+            <if test="removeDateTime != null">
+                RMV_DT,
+            </if>
+            <if test="registerId != null">
+                REG_ID,
+            </if>
+            <if test="authoritySequence != null">
+                ATH_SEQ,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                SQ_USR_SEQ.NEXTVAL,
+            <if test="userId != null">
+                #{userId,jdbcType=VARCHAR},
+            </if>
+            <if test="userPassword != null">
+                #{userPassword,jdbcType=VARCHAR},
+            </if>
+            <if test="userName != null">
+                #{userName,jdbcType=NVARCHAR},
+            </if>
+            <if test="userEmail != null">
+                #{userEmail,jdbcType=VARCHAR},
+            </if>
+            <if test="departmentName != null">
+                #{departmentName,jdbcType=NVARCHAR},
+            </if>
+            <if test="useYn != null">
+                #{useYn,jdbcType=CHAR},
+            </if>
+                'N',
+            <if test="lastLoginDateTime != null">
+                #{lastLoginDateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="lastPasswordModifyDateTime != null">
+                #{lastPasswordModifyDateTime,jdbcType=TIMESTAMP},
+            </if>
+                'N',
+                SYSDATE,
+            <if test="modifyDateTime != null">
+                #{modifyDateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="removeDateTime != null">
+                #{removeDateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="registerId != null">
+                #{registerId,jdbcType=VARCHAR},
+            </if>
+            <if test="authoritySequence != null">
+                #{authoritySequence,jdbcType=DECIMAL},
+            </if>
+        </trim>
+    </insert>
+    
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from TB_BS_USR
+        where USR_SEQ = #{userSequence,jdbcType=DECIMAL}
+    </select>
+</mapper>

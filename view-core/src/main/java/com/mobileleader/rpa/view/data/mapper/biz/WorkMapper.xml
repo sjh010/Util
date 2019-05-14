@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.biz.WorkMapper">
+    
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.Work">
+        <id column="WRK_SEQ" jdbcType="DECIMAL" property="workSequence" />
+        <result column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="RPT_CCL_UNT_CD" jdbcType="VARCHAR" property="repeatCycleUnitCode" />
+        <result column="RPT_CCL" jdbcType="DECIMAL" property="repeatCycle" />
+        <result column="EXEC_STD_VAL" jdbcType="NVARCHAR" property="executeStandardValue" />
+        <result column="EXEC_HM" jdbcType="VARCHAR" property="executeHourminute" />
+        <result column="ATV_YN" jdbcType="CHAR" property="activationYn" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="MOD_DT" jdbcType="TIMESTAMP" property="modifyDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="MOD_ID" jdbcType="VARCHAR" property="modifyId" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+        <result column="RMV_DT" jdbcType="TIMESTAMP" property="removeDateTime" />
+        <result column="RMV_ID" jdbcType="VARCHAR" property="removeId" />
+    </resultMap>
+    
+    <resultMap id="WorkAssignmentListResultMap" type="com.mobileleader.rpa.view.data.dto.WorkAssignmentList" extends="BaseResultMap">
+        <result column="PRCS_SEQ" jdbcType="DECIMAL" property="processSequence" />
+        <result column="PRCS_NM" jdbcType="NVARCHAR" property="processName" />   
+        <result column="MJR_VSN" jdbcType="DECIMAL" property="majorVersion" />
+        <result column="MNR_VSN" jdbcType="DECIMAL" property="minorVersion" />
+        <result column="RBT_CNT" jdbcType="DECIMAL" property="robotCount" />
+    </resultMap>
+    
+    <resultMap id="WorkAssignedRobotResultMap" type="com.mobileleader.rpa.view.data.dto.WorkAssignedRobot">
+        <id column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+        <result column="RBT_NM" jdbcType="NVARCHAR" property="robotName" />
+        <result column="CNT" jdbcType="DECIMAL" property="workAssignedCount" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        WRK_SEQ, PRCS_VSN_SEQ, RPT_CCL_UNT_CD, RPT_CCL, EXEC_STD_VAL, EXEC_HM, ATV_YN, 
+        REG_DT, MOD_DT, REG_ID, MOD_ID, RMV_YN, RMV_DT, RMV_ID
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM
+            TB_BZ_WRK
+        WHERE 
+            WRK_SEQ = #{workSequence,jdbcType=DECIMAL}
+            AND RMV_YN = 'N'
+    </select>
+  
+    <select id="selectByProcessVersionSequence" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM
+            TB_BZ_WRK
+        WHERE 1=1
+            AND RMV_YN = 'N'
+            AND PRCS_VSN_SEQ = #{processVersionSequence,jdbcType=DECIMAL}
+            
+    </select>
+    <insert id="registWork" parameterType="com.mobileleader.rpa.view.data.dto.WorkRegist" keyColumn="WRK_SEQ" useGeneratedKeys="true" keyProperty="workSequence">
+        <selectKey keyProperty="workSequence" resultType="java.lang.Integer" order="BEFORE">
+            SELECT SQ_WRK_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_WRK (
+            WRK_SEQ,
+            PRCS_VSN_SEQ,
+            RPT_CCL_UNT_CD,
+            RPT_CCL,
+            EXEC_STD_VAL,
+            EXEC_HM,
+            ATV_YN,
+            REG_DT,
+            MOD_DT,
+            REG_ID,
+            MOD_ID,
+            RMV_YN
+        )
+        VALUES (
+            #{workSequence,jdbcType=DECIMAL},
+            #{processVersionSequence,jdbcType=DECIMAL},
+            #{repeatCycleUnitCode,jdbcType=VARCHAR},
+            #{repeatCycle,jdbcType=DECIMAL},
+            #{executeStandardValue,jdbcType=NVARCHAR},
+            #{executeHourminute,jdbcType=VARCHAR},
+            #{activationYn,jdbcType=VARCHAR},
+            SYSDATE,
+            NULL,
+            #{registerId,jdbcType=VARCHAR},
+            NULL,
+            'N'
+        )
+    </insert>
+    
+    <update id="updateRemoveStatus" parameterType="com.mobileleader.rpa.data.dto.biz.Work">
+        UPDATE
+            TB_BZ_WRK
+        SET
+            RMV_YN = 'Y',
+            RMV_DT = SYSDATE,
+            RMV_ID = #{removeId,jdbcType=VARCHAR}
+        WHERE 
+            WRK_SEQ = #{workSequence,jdbcType=DECIMAL}
+    </update>
+    
+     <update id="updateActivationYn" parameterType="java.util.HashMap">
+        UPDATE TB_BZ_WRK
+        SET
+            ATV_YN = #{activationYn,jdbcType=CHAR},
+            MOD_ID = #{modifyId,jdbcType=VARCHAR},
+            MOD_DT = SYSDATE
+        WHERE
+            WRK_SEQ = #{workSequence,jdbcType=DECIMAL}
+    </update>
+    
+    <select id="selectActivationWorkCount" resultType="java.lang.Integer">
+        SELECT 
+            COUNT(tb_work.WRK_SEQ)
+        FROM 
+            TB_BZ_WRK tb_work
+        LEFT JOIN 
+            TB_BZ_WRK_ASGN tb_work_asgn
+        ON 
+            tb_work.WRK_SEQ = tb_work_asgn.WRK_SEQ
+        WHERE 
+            tb_work.RMV_YN = 'N' 
+        AND 
+            tb_work.ATV_YN = 'Y'
+        AND 
+            tb_work_asgn.RMV_YN = 'N' 
+        AND 
+            tb_work_asgn.SCDR_TRGR_REG_YN = 'Y'
+    </select>
+    
+    <!-- 목록조회에서 사용 -->
+    <sql id="joinProcessVersionAndWork">
+        JOIN TB_BZ_WRK W
+        ON W.WRK_SEQ = WA.WRK_SEQ AND W.RMV_YN = 'N' AND WA.RMV_YN = 'N'
+        JOIN TB_BZ_RBT R
+        ON R.RBT_SEQ = WA.RBT_SEQ AND R.RMV_YN = 'N'
+        JOIN TB_BZ_PRCS_VSN PV
+        ON W.PRCS_VSN_SEQ = PV.PRCS_VSN_SEQ AND PV.RMV_YN = 'N'
+        JOIN TB_BZ_PRCS P
+        ON P.PRCS_SEQ = PV.PRCS_SEQ AND PV.RMV_YN = 'N' 
+    </sql>
+    
+    <!-- 목록조회에서 사용 -->
+    <sql id="WhereClause">
+        AND WA.RMV_YN = 'N'
+        AND W.RMV_YN = 'N'
+        AND PV.RMV_YN = 'N'
+        <if test="processName != null and processName != ''">AND ${processNameQuery}</if>
+        <if test="registerDateTime != null and registerDateTime != ''">
+            AND W.REG_DT BETWEEN TO_DATE(CONCAT(#{registerDateTime, jdbcType=VARCHAR}, ' 000000'), 'YYYY-MM-DD HH24MISS')
+                             AND TO_DATE(CONCAT(#{registerDateTime, jdbcType=VARCHAR}, ' 235959'), 'YYYY-MM-DD HH24MISS')
+        </if>
+        <if test="activationYn != null and activationYn != ''">AND W.ATV_YN = #{activationYn, jdbcType=CHAR}</if>
+        
+    </sql>
+    <sql id="groupByClause">
+        PV.PRCS_VSN_SEQ,
+        WA.WRK_SEQ,
+        W.RPT_CCL_UNT_CD,
+        W.RPT_CCL,
+        W.EXEC_STD_VAL,
+        W.EXEC_HM,
+        W.ATV_YN,
+        W.REG_DT,
+        W.REG_ID,
+        P.PRCS_SEQ,
+        P.PRCS_NM,
+        PV.MJR_VSN,
+        PV.MNR_VSN
+    </sql>
+    <sql id="SortClause">
+        <choose>
+            <when test="sortKey != null and sortKey != ''">
+                <if test="sortKey == 'processName'">P.PRCS_NM ${sortOrder}</if>
+                <if test="sortKey == 'majorVersion'">PV.MJR_VSN ${sortOrder}</if>
+                <if test="sortKey == 'robotCount'">RBT_CNT ${sortOrder}</if>
+                <if test="sortKey == 'repeatCycleUnitCode'">W.RPT_CCL_UNT_CD ${sortOrder}</if>
+                <if test="sortKey == 'registerDateTime'">W.REG_DT ${sortOrder}</if>
+                <if test="sortKey == 'registerId'">W.REG_ID ${sortOrder}</if>
+                <if test="sortKey == 'activationYn'">W.ATV_YN ${sortOrder}</if>
+            </when>
+            <otherwise>W.REG_DT DESC</otherwise>
+        </choose>
+    </sql>
+    
+    <select id="selectCount" parameterType="com.mobileleader.rpa.view.model.form.WorkAssignmentSearchForm" resultType="java.lang.Integer">
+        SELECT
+            COUNT(*) 
+        FROM (
+            SELECT
+                WA.WRK_SEQ
+            FROM 
+                TB_BZ_WRK_ASGN WA
+                <include refid="joinProcessVersionAndWork"/>
+            WHERE 1=1
+                <include refid="WhereClause"/>
+            GROUP BY
+                <include refid="groupByClause"/>
+        ) T
+    </select>
+    
+    <select id="selectWorkAssignmentList" parameterType="com.mobileleader.rpa.view.model.form.WorkAssignmentSearchForm" resultMap="WorkAssignmentListResultMap">
+        SELECT 
+            T2.*
+        FROM (
+            SELECT
+                ROWNUM as RNUM,
+                T.*
+            FROM (
+                SELECT DISTINCT
+                    PV.PRCS_VSN_SEQ,
+                    WA.WRK_SEQ,
+                    W.RPT_CCL_UNT_CD,
+                    W.RPT_CCL,
+                    W.EXEC_STD_VAL,
+                    W.EXEC_HM,
+                    W.ATV_YN,
+                    W.REG_DT,
+                    W.REG_ID,
+                    P.PRCS_SEQ,
+                    P.PRCS_NM,
+                    PV.MJR_VSN,
+                    PV.MNR_VSN,
+                    COUNT(R.RBT_SEQ) as RBT_CNT
+                FROM 
+                    TB_BZ_WRK_ASGN WA
+                    <include refid="joinProcessVersionAndWork"/>
+                WHERE 1=1
+                    <include refid="WhereClause"/>
+                GROUP BY
+                    <include refid="groupByClause"/>
+                ORDER BY 
+                    <include refid="SortClause"/>   
+            ) T 
+            WHERE 1=1
+                AND ROWNUM &lt;= #{endRowNo, jdbcType=INTEGER}
+        ) T2
+        WHERE 1=1 
+            AND T2.RNUM &gt;= #{startRowNo, jdbcType=INTEGER}
+    </select>
+    
+    <!-- full scan -->
+    <select id="selectWorkAssignedRobot" resultMap="WorkAssignedRobotResultMap">
+        SELECT
+            R.RBT_SEQ,
+            R.RBT_NM,
+            WA.CNT  
+        FROM
+            TB_BZ_WRK W
+        JOIN
+            TB_BZ_WRK_ASGN WA
+        ON
+            W.WRK_SEQ = WA.WRK_SEQ
+        JOIN
+            TB_BZ_RBT R
+        ON
+            R.RBT_SEQ = WA.RBT_SEQ
+        left join (
+            SELECT 
+                WA.RBT_SEQ,
+                COUNT(WA.WRK_SEQ) CNT
+            FROM
+                TB_BZ_WRK_ASGN WA
+            JOIN
+                TB_BZ_WRK W
+            ON
+                WA.WRK_SEQ = W.WRK_SEQ
+            WHERE 
+                WA.RMV_YN = 'N'
+                AND W.RMV_YN = 'N'
+                AND W.WRK_SEQ != #{workSequence,jdbcType=DECIMAL}
+            GROUP BY
+                WA.RBT_SEQ
+        ) WA
+        ON
+            WA.RBT_SEQ = R.RBT_SEQ
+        WHERE 1=1
+            AND W.RMV_YN = 'N'
+            AND WA.RMV_YN = 'N'
+            AND R.RMV_YN = 'N'
+            AND W.WRK_SEQ = #{workSequence,jdbcType=DECIMAL}
+        ORDER BY
+            R.RBT_NM
+    </select>
+    
+    <update id="updateWork" parameterType="com.mobileleader.rpa.view.data.dto.WorkModify">
+        UPDATE
+            TB_BZ_WRK
+        SET
+            RPT_CCL_UNT_CD = #{repeatCycleUnitCode,jdbcType=VARCHAR},
+            RPT_CCL = #{repeatCycle,jdbcType=DECIMAL},
+            EXEC_STD_VAL = #{executeStandardValue,jdbcType=NVARCHAR},
+            EXEC_HM = #{executeHourminute,jdbcType=VARCHAR},
+            ATV_YN = #{activationYn,jdbcType=VARCHAR},
+            MOD_DT = SYSDATE,
+            MOD_ID = #{modifyId,jdbcType=VARCHAR}
+        WHERE
+            WRK_SEQ = #{workSequence,jdbcType=DECIMAL}
+    </update>
+    
+    <select id="selectWorkCountByRobotSequence" resultType="java.lang.Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            TB_BZ_RBT
+        WHERE
+            RBT_SEQ = #{robotSequence,jdbcType=DECIMAL}
+            AND RMV_YN = 'N'
+            AND RBT_SEQ IN (
+                SELECT 
+                    RBT_SEQ
+                FROM
+                    TB_BZ_WRK_ASGN WA
+                JOIN
+                    TB_BZ_WRK W
+                ON
+                    WA.WRK_SEQ = W.WRK_SEQ
+                WHERE
+                    W.RMV_YN = 'N'
+            )
+    </select>
+</mapper>

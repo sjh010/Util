@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.common.CommonCodeMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.common.CommonCode">
+        <id column="GRP_CD" jdbcType="VARCHAR" property="groupCode" />
+        <id column="CD" jdbcType="VARCHAR" property="code" />
+        <result column="CD_NM" jdbcType="NVARCHAR" property="codeName" />
+        <result column="RMK_CTNT" jdbcType="NVARCHAR" property="remarksContent" />
+        <result column="SRT_ORD" jdbcType="DECIMAL" property="sortOrder" />
+        <result column="USE_YN" jdbcType="CHAR" property="useYn" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        GRP_CD, CD, CD_NM, RMK_CTNT, SRT_ORD, USE_YN
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_CM_CD
+        WHERE GRP_CD = #{groupCode,jdbcType=VARCHAR}
+        AND CD = #{code,jdbcType=VARCHAR}
+    </select>
+    <select id="selectByGroupCode" resultMap="BaseResultMap">
+        SELECT 
+            GRP_CD, CD, CD_NM
+        FROM TB_CM_CD
+        WHERE GRP_CD = #{groupCode,jdbcType=VARCHAR}
+        ORDER BY GRP_CD, CD ASC
+    </select>
+</mapper>

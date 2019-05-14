@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.biz.ProcessVersionMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.ProcessVersion">
+        <id column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="PRCS_SEQ" jdbcType="DECIMAL" property="processSequence" />
+        <result column="MJR_VSN" jdbcType="DECIMAL" property="majorVersion" />
+        <result column="MNR_VSN" jdbcType="DECIMAL" property="minorVersion" />
+        <result column="RMK_CTNT" jdbcType="NVARCHAR" property="remarksContent" />
+        <result column="PRCS_FILE_GRP_SEQ" jdbcType="DECIMAL" property="processFileGroupSequence" />
+        <result column="ATV_YN" jdbcType="CHAR" property="activationYn" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="RMV_DT" jdbcType="TIMESTAMP" property="removeDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="RMV_ID" jdbcType="VARCHAR" property="removeId" />
+    </resultMap>
+    
+    <resultMap id="ProcessNameVersionResultMap" type="com.mobileleader.rpa.view.data.dto.ProcessNameVersion">
+        <id column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="MJR_VSN" jdbcType="DECIMAL" property="majorVersion" />
+        <result column="MNR_VSN" jdbcType="DECIMAL" property="minorVersion" />
+        <result column="PRCS_SEQ" jdbcType="DECIMAL" property="processSequence" />
+        <result column="PRCS_NM" jdbcType="NVARCHAR" property="processName" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        PRCS_VSN_SEQ, PRCS_SEQ, MJR_VSN, MNR_VSN, RMK_CTNT, PRCS_FILE_GRP_SEQ, ATV_YN, RMV_YN,
+        REG_DT, RMV_DT, REG_ID, RMV_ID
+    </sql>
+    
+    <select id="selectCount" 
+        parameterType="com.mobileleader.rpa.view.model.form.ProcessHistorySearchForm" resultType="java.lang.Integer">
+        SELECT COUNT(PRCS_VSN_SEQ) 
+        FROM (
+              SELECT temp.*, ROWNUM AS RNUM 
+              FROM (
+                    SELECT 
+                        prcs_vsn.PRCS_VSN_SEQ, prcs_vsn.MJR_VSN, prcs_vsn.MNR_VSN, 
+                        prcs_vsn.ATV_YN, prcs_vsn.RMV_YN, prcs_vsn.REG_ID
+                    FROM 
+                        TB_BZ_PRCS_VSN prcs_vsn
+                    WHERE 
+                        prcs_vsn.PRCS_SEQ = (SELECT PRCS_SEQ FROM TB_BZ_PRCS_VSN WHERE PRCS_VSN_SEQ = #{processVersionSequence, jdbcType=DECIMAL})
+                    AND 
+                        prcs_vsn.PRCS_VSN_SEQ  <![CDATA[ <= ]]> #{processVersionSequence, jdbcType=DECIMAL}
+                    <if test = "activationYn != null and activationYn != ''">
+                        <choose>
+                            <when test = 'activationYn == "R"'>
+                            AND prcs_vsn.RMV_YN = 'Y'
+                            </when>
+                            <otherwise>
+                            AND prcs_vsn.ATV_YN = #{activationYn, jdbcType=CHAR}
+                            </otherwise>
+                        </choose>
+                    </if>
+                    <if test = "changeDate != null and changeDate != ''">
+                        AND prcs_vsn.REG_DT BETWEEN TO_DATE(CONCAT(#{changeDate, jdbcType=VARCHAR}, ' 000000'), 'YYYY-MM-DD HH24MISS')
+                                                AND TO_DATE(CONCAT(#{changeDate, jdbcType=VARCHAR}, ' 235959'), 'YYYY-MM-DD HH24MISS')
+                    </if>
+                    ORDER BY 
+                        prcs_vsn.MJR_VSN desc, prcs_vsn.MNR_VSN desc
+                    ) temp
+             )
+    </select>
+    
+    <select id="selectProcessHistory" 
+        parameterType="com.mobileleader.rpa.view.model.form.ProcessHistorySearchForm" resultMap="BaseResultMap">
+        SELECT * 
+        FROM (
+              SELECT temp.*, ROWNUM AS RNUM 
+              FROM (
+                    SELECT 
+                        prcs_vsn.PRCS_VSN_SEQ, prcs_vsn.MJR_VSN, prcs_vsn.MNR_VSN, prcs_vsn.RMK_CTNT,
+                        prcs_vsn.ATV_YN, prcs_vsn.RMV_YN, prcs_vsn.REG_ID, prcs_vsn.REG_DT
+                    FROM 
+                        TB_BZ_PRCS_VSN prcs_vsn
+                    WHERE 
+                        prcs_vsn.PRCS_SEQ = (SELECT PRCS_SEQ FROM TB_BZ_PRCS_VSN WHERE PRCS_VSN_SEQ = #{processVersionSequence, jdbcType=DECIMAL})
+                    AND 
+                        prcs_vsn.PRCS_VSN_SEQ  <![CDATA[ <= ]]> #{processVersionSequence, jdbcType=DECIMAL}
+                    <if test = "activationYn != null and activationYn != ''">
+                        <choose>
+                            <when test = 'activationYn == "R"'>
+                            AND prcs_vsn.RMV_YN = 'Y'
+                            </when>
+                            <otherwise>
+                            AND prcs_vsn.ATV_YN = #{activationYn, jdbcType=CHAR}
+                            </otherwise>
+                        </choose>
+                    </if>
+                    <if test = "changeDate != null and changeDate != ''">
+                        AND prcs_vsn.REG_DT BETWEEN TO_DATE(CONCAT(#{changeDate, jdbcType=VARCHAR}, ' 000000'), 'YYYY-MM-DD HH24MISS')
+                                                AND TO_DATE(CONCAT(#{changeDate, jdbcType=VARCHAR}, ' 235959'), 'YYYY-MM-DD HH24MISS')
+                    </if>
+                    ORDER BY 
+                        prcs_vsn.MJR_VSN desc, prcs_vsn.MNR_VSN desc
+                    ) temp
+              WHERE
+                ROWNUM <![CDATA[ <= ]]> #{endRowNo,jdbcType=INTEGER}
+             )
+        WHERE RNUM <![CDATA[ >= ]]> #{startRowNo,jdbcType=INTEGER}     
+    </select>
+    
+    <update id="updateActivationYn" parameterType="hashmap">
+        UPDATE
+            TB_BZ_PRCS_VSN
+        SET
+            ATV_YN = #{activationYn, jdbcType=CHAR}
+        WHERE
+            PRCS_VSN_SEQ = #{processVersionSequence, jdbcType=DECIMAL}
+    </update>
+    
+    <insert id="insertProcessVersion" parameterType="com.mobileleader.rpa.data.dto.biz.ProcessVersion"
+            useGeneratedKeys="true" keyColumn="PRCS_VSN_SEQ" keyProperty="processVersionSequence">
+        <selectKey keyProperty="processVersionSequence" order="BEFORE" resultType="java.lang.Integer">
+            SELECT SQ_PRCS_VSN_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_PRCS_VSN (
+            PRCS_VSN_SEQ,
+            PRCS_SEQ,
+            MJR_VSN,
+            MNR_VSN,
+            <if test="remarksContent != null and remarksContent != ''">
+            RMK_CTNT,
+            </if>
+            <if test="processFileGroupSequence != null and processFileGroupSequence != ''">
+            PRCS_FILE_GRP_SEQ,
+            </if>
+            ATV_YN,
+            RMV_YN,
+            REG_DT,
+            REG_ID
+        ) VALUES (
+            #{processVersionSequence, jdbcType=DECIMAL},
+            #{processSequence, jdbcType=DECIMAL},
+            #{majorVersion, jdbcType=DECIMAL},
+            #{minorVersion, jdbcType=DECIMAL},
+            <if test="remarksContent != null and remarksContent != ''">
+            #{remarksContent,jdbcType=NVARCHAR},
+            </if>
+            <if test="processFileGroupSequence != null and processFileGroupSequence != ''">
+            #{processFileGroupSequence,jdbcType=DECIMAL},
+            </if>
+            #{activationYn, jdbcType=CHAR},
+            #{removeYn, jdbcType=CHAR},
+            SYSDATE,
+            #{registerId,jdbcType=VARCHAR}
+        )
+    </insert>
+    
+    <select id="selectNextMajorVersion" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT
+            MAX(MJR_VSN) + 1
+        FROM
+            TB_BZ_PRCS_VSN
+        WHERE
+            PRCS_SEQ = #{processSequence, jdbcType=DECIMAL}
+    </select>
+    
+    <update id="updateRemoveStatus" parameterType="hashmap">
+        UPDATE
+            TB_BZ_PRCS_VSN
+        SET
+            RMV_YN = #{removeYn, jdbcType=CHAR},
+            RMV_DT = SYSDATE,
+            RMV_ID = #{removeId, jdbcType=VARCHAR}
+        WHERE
+            PRCS_VSN_SEQ 
+        IN
+            (SELECT VSN.PRCS_VSN_SEQ
+            FROM TB_BZ_PRCS_VSN VSN
+            RIGHT JOIN
+                (SELECT PRCS_SEQ, MJR_VSN, MNR_VSN
+                FROM TB_BZ_PRCS_VSN
+                WHERE PRCS_VSN_SEQ = #{processVersionSequence, jdbcType=DECIMAL}) VSN2
+            ON VSN.PRCS_SEQ = VSN2.PRCS_SEQ
+            WHERE
+                (VSN.MNR_VSN = VSN2.MNR_VSN AND VSN.MJR_VSN = VSN2.MJR_VSN)
+                OR
+                (VSN.MNR_VSN > 0 AND
+                VSN.MJR_VSN = (CASE WHEN VSN2.MNR_VSN > 0 THEN VSN2.MJR_VSN
+                                    WHEN VSN2.MNR_VSN = 0 THEN VSN2.MJR_VSN - 1
+                                END)))
+    </update>
+    
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from TB_BZ_PRCS_VSN
+        where PRCS_VSN_SEQ = #{processVersionSequence,jdbcType=DECIMAL}
+    </select>
+
+    <select id="selectActiveProcessCount" resultType="java.lang.Integer">
+        SELECT
+            COUNT(PRCS_VSN_SEQ)
+        FROM
+            TB_BZ_PRCS_VSN PV
+        WHERE 1=1
+            AND PV.RMV_YN = 'N'
+            AND PV.ATV_YN = 'Y'
+            AND PRCS_VSN_SEQ NOT IN (
+                SELECT PRCS_VSN_SEQ
+                FROM TB_BZ_WRK
+                WHERE 1=1
+                    AND RMV_YN = 'N'
+            )
+    </select>
+
+    <select id="selectActiveProcess" resultMap="ProcessNameVersionResultMap">
+        SELECT 
+            P.PRCS_SEQ,
+            P.PRCS_NM,
+            V.PRCS_VSN_SEQ,
+            V.MJR_VSN,
+            V.MNR_VSN 
+        FROM
+            TB_BZ_PRCS_VSN V
+        JOIN TB_BZ_PRCS P
+        ON P.PRCS_SEQ = V.PRCS_SEQ
+        WHERE 1=1
+            AND V.RMV_YN = 'N'
+            AND V.ATV_YN = 'Y'
+            AND V.PRCS_VSN_SEQ NOT IN (
+                SELECT 
+                    V.PRCS_VSN_SEQ
+                FROM
+                    TB_BZ_WRK W
+                JOIN
+                    TB_BZ_PRCS_VSN V
+                ON
+                    W.PRCS_VSN_SEQ = V.PRCS_VSN_SEQ
+                JOIN
+                    TB_BZ_WRK_ASGN WA
+                ON
+                    WA.WRK_SEQ = W.WRK_SEQ
+              WHERE 1=1
+                AND W.RMV_YN = 'N'
+                AND V.RMV_YN = 'N'
+                AND WA.RMV_YN = 'N'
+                <if test="workSequence != null">
+                AND W.WRK_SEQ != #{workSequence,jdbcType=DECIMAL}
+                </if>
+            )
+        ORDER BY
+            P.PRCS_NM,
+            V.MJR_VSN,
+            V.MNR_VSN
+    </select>
+    
+    <select id="selectProcessNameVersionByPrimaryKey" resultMap="ProcessNameVersionResultMap">
+        SELECT 
+            P.PRCS_SEQ,
+            P.PRCS_NM,
+            V.PRCS_VSN_SEQ,
+            V.MJR_VSN,
+            V.MNR_VSN 
+        FROM
+            TB_BZ_PRCS_VSN V
+        JOIN TB_BZ_PRCS P
+        ON P.PRCS_SEQ = V.PRCS_SEQ
+        WHERE 1=1
+            AND V.RMV_YN = 'N'
+            AND V.PRCS_VSN_SEQ = #{processVersionSequence,jdbcType=DECIMAL}
+    </select>
+    
+    <select id="selectProcessSequence" resultType="java.lang.Integer">
+        SELECT
+            PV.PRCS_SEQ
+        FROM
+            TB_BZ_PRCS_VSN PV
+        WHERE 1=1
+            AND PV.PRCS_VSN_SEQ = #{processVersionSequence, jdbcType=DECIMAL}
+    </select>
+    
+    <select id="selectNotDeletedProcessCount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT
+            COUNT(PRCS_VSN_SEQ)
+        FROM
+            TB_BZ_PRCS_VSN
+        WHERE
+            PRCS_SEQ = #{processSequence, jdbcType=DECIMAL}
+        AND
+            RMV_YN = 'N'
+    </select>
+</mapper>

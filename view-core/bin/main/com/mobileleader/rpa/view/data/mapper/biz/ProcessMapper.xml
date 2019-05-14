@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.biz.ProcessMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.Process">
+        <id column="PRCS_SEQ" jdbcType="DECIMAL" property="processSequence" />
+        <result column="PRCS_NM" jdbcType="NVARCHAR" property="processName" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="CM_STS_MOD_DT" jdbcType="TIMESTAMP" property="configManagementStatusModifyDateTime" />
+        <result column="CM_USR_ID" jdbcType="VARCHAR" property="configManagementUserId" />
+        <result column="CM_STS_CD" jdbcType="VARCHAR" property="configManagementStatusCode" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+        <result column="RMV_DT" jdbcType="TIMESTAMP" property="removeDateTime" />
+        <result column="RMV_ID" jdbcType="VARCHAR" property="removeId" />
+    </resultMap>
+
+    <resultMap id="ProcessListResultMap" type="com.mobileleader.rpa.view.data.dto.ProcessInfo">
+        <id column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="PRCS_SEQ" jdbcType="DECIMAL" property="processSequence" />
+        <result column="PRCS_NM" jdbcType="NVARCHAR" property="processName" />
+        <result column="MJR_VSN" jdbcType="DECIMAL" property="majorVersion" />
+        <result column="MNR_VSN" jdbcType="DECIMAL" property="minorVersion" />
+        <result column="CM_STS_CD" jdbcType="VARCHAR" property="configManagementStatusCode" />
+        <result column="CM_STS_MOD_DT" jdbcType="TIMESTAMP" property="configManagementStatusModifyDateTime" />
+        <result column="CM_USR_ID" jdbcType="VARCHAR" property="configManagementUserId" />
+        <result column="ATV_YN" jdbcType="CHAR" property="activationYn" />
+        <result column="ATV_YN_NM" jdbcType="VARCHAR" property="activationYnName" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="WRK_ASGN_YN" jdbcType="VARCHAR" property="workAssignmentYn" />
+        <result column="WRK_ASGN_YN_NM" jdbcType="VARCHAR" property="workAssignmentYnName" />
+    </resultMap>
+    
+    <resultMap id="ProcessExecuteInfoMap" type="com.mobileleader.rpa.view.data.dto.DashboardProcessExecuteInfo">
+        <id column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="PRCS_NM" jdbcType="NVARCHAR" property="processName" />
+        <result column="MJR_VSN" jdbcType="DECIMAL" property="majorVersion" />
+        <result column="MNR_VSN" jdbcType="DECIMAL" property="minorVersion" />
+        <result column="EXE_CNT" jdbcType="DECIMAL" property="executeCount" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        PRCS_SEQ, PRCS_NM, REG_DT, REG_ID, CM_STS_MOD_DT, CM_USR_ID, CM_STS_CD, RMV_YN, RMV_DT, RMV_ID
+    </sql>
+
+    <select id="selectCount"
+        parameterType="com.mobileleader.rpa.view.model.form.ProcessSearchForm"
+        resultType="java.lang.Integer">
+        SELECT COUNT(PRCS_VSN_SEQ) 
+        FROM (
+              SELECT temp.*, ROWNUM AS RNUM 
+              FROM (
+                    SELECT
+                        DISTINCT prcs_vsn.PRCS_VSN_SEQ, prcs.PRCS_SEQ, prcs.PRCS_NM, prcs_vsn.MJR_VSN, prcs_vsn.MNR_VSN,
+                        prcs_vsn.REG_ID, prcs.CM_STS_CD, prcs.CM_STS_MOD_DT, prcs.CM_USR_ID, prcs_vsn.ATV_YN 
+                    FROM
+                        TB_BZ_PRCS prcs 
+                    LEFT JOIN 
+                        TB_BZ_PRCS_VSN prcs_vsn 
+                    ON 
+                        prcs.PRCS_SEQ = prcs_vsn.PRCS_SEQ
+                    WHERE
+                        prcs_vsn.RMV_YN = 'N'
+                    AND
+                        (
+                         prcs_vsn.MNR_VSN = 0
+                            OR
+                         prcs_vsn.PRCS_VSN_SEQ = ( SELECT MAX(VSN.PRCS_VSN_SEQ) 
+                                                   FROM TB_BZ_PRCS_VSN VSN 
+                                                   WHERE PRCS_SEQ = prcs.PRCS_SEQ
+                                                   AND RMV_YN = 'N' )
+                        )
+                    <if test = "processName != null and processName != ''">
+                        AND ${processNameQuery}
+                    </if>
+                    <if test = "configManagementStatusCode != null and configManagementStatusCode != ''">
+                        AND prcs.CM_STS_CD = #{configManagementStatusCode, jdbcType=VARCHAR}
+                    </if>
+                    <if test = "activationYn != null and activationYn != ''">
+                        AND prcs_vsn.ATV_YN = #{activationYn, jdbcType=CHAR}
+                    </if>
+                    ORDER BY
+                        prcs.CM_STS_MOD_DT desc 
+                    ) temp 
+             )
+    </select>
+
+    <select id="selectProcessList"
+        parameterType="com.mobileleader.rpa.view.model.form.ProcessSearchForm"
+        resultMap="ProcessListResultMap">
+        SELECT * 
+        FROM (
+              SELECT temp.*, ROWNUM AS RNUM 
+              FROM (
+                    SELECT
+                        DISTINCT prcs_vsn.PRCS_VSN_SEQ, prcs.PRCS_SEQ, prcs.PRCS_NM, prcs_vsn.MJR_VSN, prcs_vsn.MNR_VSN,
+                        prcs_vsn.REG_ID, prcs.CM_STS_CD, prcs.CM_STS_MOD_DT, prcs.CM_USR_ID, prcs_vsn.ATV_YN, prcs_vsn.REG_DT,
+                        (CASE WHEN prcs_vsn.ATV_YN = 'Y' THEN '사용' ELSE '사용 안 함' END) ATV_YN_NM,
+                        (CASE WHEN prcs_work.WRK_SEQ IS NULL THEN 'N' ELSE 'Y' END) WRK_ASGN_YN,
+                        (CASE WHEN prcs_work.WRK_SEQ IS NULL THEN '미할당' ELSE '할당' END) WRK_ASGN_YN_NM,
+                        prcs_cd.CD_NM CM_STS_CD_NM
+                    FROM
+                        TB_BZ_PRCS prcs 
+                    LEFT JOIN 
+                        TB_BZ_PRCS_VSN prcs_vsn 
+                    ON 
+                        prcs.PRCS_SEQ = prcs_vsn.PRCS_SEQ
+                    LEFT JOIN
+                        TB_BZ_WRK prcs_work
+                    ON
+                        prcs_vsn.PRCS_VSN_SEQ = prcs_work.PRCS_VSN_SEQ AND prcs_work.RMV_YN = 'N'
+                    LEFT JOIN
+                        TB_CM_CD prcs_cd
+                    ON
+                        prcs.CM_STS_CD = prcs_cd.CD AND prcs_cd.GRP_CD = 'CM_STS_CD'
+                    WHERE
+                        prcs_vsn.RMV_YN = 'N'
+                    AND
+                        (
+                         prcs_vsn.MNR_VSN = 0
+                            OR
+                         prcs_vsn.PRCS_VSN_SEQ = ( SELECT MAX(VSN.PRCS_VSN_SEQ) 
+                                                   FROM TB_BZ_PRCS_VSN VSN 
+                                                   WHERE PRCS_SEQ = prcs.PRCS_SEQ
+                                                   AND RMV_YN = 'N' )
+                        )
+                    <if test = "processName != null and processName != ''">
+                        AND ${processNameQuery}
+                    </if>
+                    <if test = "configManagementStatusCode != null and configManagementStatusCode != ''">
+                        AND prcs.CM_STS_CD = #{configManagementStatusCode, jdbcType=VARCHAR}
+                    </if>
+                    <if test = "activationYn != null and activationYn != ''">
+                        AND prcs_vsn.ATV_YN = #{activationYn, jdbcType=CHAR}
+                    </if>
+                    ORDER BY
+                        <choose>
+                            <when test = 'sortKey == "processName" and sortOrder == "desc"'>
+                            prcs.PRCS_NM DESC, prcs_vsn.MJR_VSN DESC, prcs_vsn.MNR_VSN DESC
+                            </when>
+                            <when test = 'sortKey == "processName" and sortOrder == "asc"'>
+                            prcs.PRCS_NM ASC, prcs_vsn.MJR_VSN DESC, prcs_vsn.MNR_VSN DESC
+                            </when>
+                            <when test = 'sortKey == "processVersion" and sortOrder == "desc"'>
+                            prcs_vsn.MJR_VSN DESC, prcs_vsn.MNR_VSN DESC
+                            </when>
+                            <when test = 'sortKey == "processVersion" and sortOrder == "asc"'>
+                            prcs_vsn.MJR_VSN ASC, prcs_vsn.MNR_VSN ASC
+                            </when>
+                            <when test = 'sortKey == "lastRegister"'>
+                            prcs_vsn.REG_ID   
+                            </when>
+                            <when test = 'sortKey == "configManagementStatus"'>
+                            CM_STS_CD_NM    
+                            </when>
+                            <when test = 'sortKey == "lastChangedDate"'>
+                            prcs_vsn.REG_DT    
+                            </when>
+                            <when test = 'sortKey == "assignYn"'>
+                            WRK_ASGN_YN_NM
+                            </when>
+                            <when test = 'sortKey == "status"'>
+                            ATV_YN_NM
+                            </when>
+                        </choose>
+                        <choose>
+                            <when test = 'sortKey != "processName" and sortKey != "processVersion" and sortOrder == "desc"'>
+                             DESC
+                            </when>
+                            <when test = 'sortKey != "processName" and sortKey != "processVersion" and sortOrder == "asc"'>
+                             ASC
+                            </when>
+                        </choose>
+                    ) temp 
+              WHERE 
+                ROWNUM <![CDATA[ <= ]]> #{endRowNo,jdbcType=INTEGER}
+             )
+        WHERE RNUM <![CDATA[ >= ]]> #{startRowNo,jdbcType=INTEGER}
+    </select>
+    
+    <select id="selectProcessExecuteInfo" resultMap="ProcessExecuteInfoMap">
+        SELECT *
+        FROM
+            (SELECT
+                ROWNUM AS RNUM, PRCS_VSN_SEQ, PRCS_NM, MJR_VSN, MNR_VSN, CNT EXE_CNT
+            FROM
+                VW_ST_PRCS_TASK
+            WHERE
+                YYYYMMDD = TO_CHAR(SYSDATE, 'YYYYMMDD')
+            ORDER BY
+                CNT DESC)
+        WHERE RNUM <![CDATA[ >= ]]> 1 AND RNUM <![CDATA[ <= ]]> 10        
+    </select>
+    
+    <select id="selectProcessResultInfo" resultType="com.mobileleader.rpa.view.data.dto.DashboardProcessResultInfo">
+        SELECT 
+            TASK_STS_CD taskStatusCode, CNT count
+        FROM 
+            VW_ST_PRCS_STS
+        WHERE
+            TASK_STS_CD IN ('SCCS', 'FAIL')
+        AND
+            YYYYMMDD = TO_CHAR(SYSDATE, 'YYYYMMDD')
+    </select>
+    
+    <select id="selectProcessCount" resultType="java.lang.Integer">
+        SELECT
+            COUNT(PRCS_SEQ)
+        FROM
+            TB_BZ_PRCS_VSN
+        WHERE
+            RMV_YN = 'N'
+        AND
+            ATV_YN = 'Y'
+    </select>
+    
+    <update id="updateConfigManagement" parameterType="hashmap">
+        UPDATE
+            TB_BZ_PRCS
+        SET
+            CM_STS_CD = #{configManagementStatusCode, jdbcType=VARCHAR},
+            CM_STS_MOD_DT = SYSDATE
+        WHERE
+            PRCS_SEQ = (SELECT PRCS_SEQ FROM TB_BZ_PRCS_VSN WHERE PRCS_VSN_SEQ = #{processVersionSequence, jdbcType=DECIMAL}) 
+    </update>
+
+    <update id="updateRemoveYn" parameterType="hashmap">
+        UPDATE
+            TB_BZ_PRCS
+        SET
+            RMV_YN = #{removeYn,jdbcType=CHAR},
+            RMV_ID = #{removeId,jdbcType=VARCHAR},
+            RMV_DT = SYSDATE
+        WHERE PRCS_SEQ = #{processSequence,jdbcType=DECIMAL}
+    </update>
+</mapper>

@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.biz.RobotMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.view.data.dto.RobotList">
+        <id column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+        <result column="RBT_NM" jdbcType="NVARCHAR" property="robotName" />
+        <result column="PC_IP" jdbcType="VARCHAR" property="pcIpAddress" />
+        <result column="PC_NM" jdbcType="NVARCHAR" property="pcName" />
+        <result column="RBT_STS_CD" jdbcType="VARCHAR" property="robotStatusCode" />
+        <result column="LST_ACT_DT" jdbcType="TIMESTAMP" property="lastActionDateTime" />
+        <result column="LST_EXEC_PRCS_SEQ" jdbcType="DECIMAL" property="lastExecuteProcessSequence" />
+        <result column="PRCS_NM" jdbcType="NVARCHAR" property="processName" />
+    </resultMap>
+    
+    <resultMap id="CommonResultMap" type="com.mobileleader.rpa.data.dto.biz.Robot">
+        <id column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+        <result column="RBT_NM" jdbcType="NVARCHAR" property="robotName" />
+        <result column="PC_IP" jdbcType="VARCHAR" property="pcIpAddress" />
+        <result column="PC_NM" jdbcType="NVARCHAR" property="pcName" />
+        <result column="RBT_STS_CD" jdbcType="VARCHAR" property="robotStatusCode" />
+        <result column="LST_ACT_DT" jdbcType="TIMESTAMP" property="lastActionDateTime" />
+        <result column="LST_EXEC_PRCS_SEQ" jdbcType="DECIMAL" property="lastExecuteProcessSequence" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="RMV_DT" jdbcType="TIMESTAMP" property="removeDateTime" />
+        <result column="RMV_ID" jdbcType="VARCHAR" property="removeId" />
+    </resultMap>
+    
+    <resultMap id="RobotNameResultMap" type="com.mobileleader.rpa.view.data.dto.RobotName">
+        <id column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+        <result column="RBT_NM" jdbcType="NVARCHAR" property="robotName" />
+    </resultMap>
+    
+    
+    <sql id="Base_Column_List">
+        R.RBT_SEQ, R.RBT_NM, R.PC_IP, R.PC_NM, R.RBT_STS_CD, R.LST_ACT_DT, R.LST_EXEC_PRCS_SEQ, P.PRCS_NM
+    </sql>
+    
+    <sql id="WhereClause">
+        <if test="robotName != null and robotName != ''">AND ${robotNameQuery}</if>
+        <if test="pcName != null and pcName != ''">AND R.PC_NM = #{pcName, jdbcType=NVARCHAR}</if>
+        <if test="robotStatusCode != null and robotStatusCode != ''">AND R.RBT_STS_CD = #{robotStatusCode, jdbcType=VARCHAR}</if>
+        AND R.RMV_YN = 'N'
+    </sql>
+    
+    <sql id="SortClause">
+        <choose>
+            <when test="sortKey != null and sortKey != ''">
+                <if test="sortKey == 'robotName'">R.RBT_NM ${sortOrder}</if>
+                <if test="sortKey == 'pcIpAddress'">R.PC_IP ${sortOrder}</if>
+                <if test="sortKey == 'pcName'">R.PC_NM ${sortOrder}</if>
+                <if test="sortKey == 'lastActionDateTime'">R.LST_ACT_DT ${sortOrder}</if>
+                <if test="sortKey == 'lastExecuteProcessSequence'">R.LST_EXEC_PRCS_SEQ ${sortOrder}</if>
+                <if test="sortKey == 'robotStatusCode'">R.RBT_STS_CD ${sortOrder}</if>
+            </when>
+            <otherwise>R.LST_ACT_DT DESC</otherwise>
+        </choose>
+    </sql>
+        
+    <select id="selectCount" parameterType="com.mobileleader.rpa.view.model.form.RobotSearchForm" resultType="java.lang.Integer">
+        SELECT
+            COUNT(R.RBT_SEQ) 
+        FROM
+            TB_BZ_RBT R
+        LEFT OUTER JOIN TB_BZ_PRCS P
+        ON R.LST_EXEC_PRCS_SEQ = P.PRCS_SEQ
+        WHERE 1=1
+            <include refid="WhereClause"/>
+    </select>
+    
+    <select id="selectRobotList" parameterType="com.mobileleader.rpa.view.model.form.RobotSearchForm" resultMap="BaseResultMap">
+        SELECT
+            T2.*
+        FROM (
+            SELECT 
+                ROWNUM RNUM,
+                T.*
+            FROM (
+                SELECT <include refid="Base_Column_List" />
+                FROM TB_BZ_RBT R
+                LEFT OUTER JOIN TB_BZ_PRCS P
+                ON R.LST_EXEC_PRCS_SEQ = P.PRCS_SEQ
+            WHERE 1=1
+                <include refid="WhereClause"/>
+            ORDER BY 
+                <include refid="SortClause"/>    
+            ) T
+            WHERE 1=1
+                AND ROWNUM &lt;= #{endRowNo, jdbcType=INTEGER}
+        ) T2
+        WHERE 1=1
+            AND T2.RNUM &gt;= #{startRowNo, jdbcType=INTEGER}
+    </select>
+    
+    <select id="selectPcNameList" resultType="java.lang.String">
+        SELECT DISTINCT
+            PC_NM
+        FROM TB_BZ_RBT R
+        WHERE 1=1
+            AND R.RMV_YN = 'N'
+        ORDER BY
+            PC_NM ASC
+    </select>
+    
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="CommonResultMap">
+        SELECT RBT_SEQ, RBT_NM, PC_IP, PC_NM, RBT_STS_CD, LST_ACT_DT, LST_EXEC_PRCS_SEQ, RMV_YN,REG_DT, REG_ID, RMV_DT, RMV_ID
+        FROM TB_BZ_RBT
+        WHERE RBT_SEQ = #{robotSequence,jdbcType=DECIMAL}
+    </select>
+    
+    <update id="removeRobot" parameterType="java.util.HashMap">
+        UPDATE TB_BZ_RBT
+        SET
+            RMV_YN = 'Y',
+            RMV_DT = SYSDATE,
+            RMV_ID = #{userId,jdbcType=VARCHAR},
+            RBT_STS_CD = 'DSCN_SVR'
+        WHERE RBT_SEQ = #{robotSequence,jdbcType=DECIMAL}
+    </update>
+    
+    <insert id="insert" parameterType="com.mobileleader.rpa.data.dto.biz.Robot"
+        useGeneratedKeys="true" keyColumn="RBT_SEQ" keyProperty="robotSequence">
+        <selectKey keyProperty="robotSequence" resultType="java.lang.Integer" order="BEFORE">
+            SELECT SQ_RBT_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_RBT (
+            RBT_SEQ,
+            RBT_NM,
+            PC_IP,
+            PC_NM,
+            RBT_STS_CD,
+            RMV_YN,
+            REG_DT,
+            REG_ID
+        ) VALUES (
+            #{robotSequence,jdbcType=DECIMAL},
+            #{robotName,jdbcType=NVARCHAR}, 
+            #{pcIpAddress,jdbcType=VARCHAR},
+            #{pcName,jdbcType=NVARCHAR},
+            #{robotStatusCode,jdbcType=VARCHAR},
+            #{removeYn,jdbcType=CHAR},
+            SYSDATE,
+            #{registerId,jdbcType=VARCHAR}
+        )
+    </insert>
+    
+    <update id="updateByPrimaryKey" parameterType="com.mobileleader.rpa.data.dto.biz.Robot">
+        UPDATE 
+            TB_BZ_RBT
+        SET 
+            RBT_NM = #{robotName,jdbcType=NVARCHAR},
+            PC_IP = #{pcIpAddress,jdbcType=VARCHAR},
+            PC_NM = #{pcName,jdbcType=NVARCHAR},
+            RBT_STS_CD = #{robotStatusCode,jdbcType=VARCHAR},
+            LST_ACT_DT = #{lastActionDateTime,jdbcType=TIMESTAMP},
+            LST_EXEC_PRCS_SEQ = #{lastExecuteProcessSequence,jdbcType=DECIMAL},
+            RMV_YN = #{removeYn,jdbcType=CHAR},
+            REG_DT = #{registerDateTime,jdbcType=TIMESTAMP},
+            REG_ID = #{registerId,jdbcType=VARCHAR},
+            RMV_DT = #{removeDateTime,jdbcType=TIMESTAMP},
+            RMV_ID = #{removeId,jdbcType=VARCHAR}
+        WHERE 
+            RBT_SEQ = #{robotSequence,jdbcType=DECIMAL}
+    </update>
+    
+    <select id="selectRobotStatusInfo" resultType="com.mobileleader.rpa.view.data.dto.DashboardRobotInfo">
+        SELECT
+            COUNT(RBT_SEQ) totalCount,
+            COUNT(CASE WHEN RBT_STS_CD = 'CNCT' THEN 1 END) waitCount,
+            COUNT(CASE WHEN RBT_STS_CD = 'WRKG' THEN 1 END) workCount,
+            COUNT(CASE WHEN RBT_STS_CD LIKE 'DSCN%' THEN 1 END) disconnectCount,
+            COUNT(CASE WHEN RBT_STS_CD = 'STOP' THEN 1 END) stopCount
+        FROM
+            TB_BZ_RBT
+        WHERE
+            RMV_YN = 'N'
+    </select>
+    
+    <select id="selectRobotErrorInfo" resultType="com.mobileleader.rpa.view.data.dto.DashboardRobotErrorInfo">
+        SELECT
+            HH hour, CNT count
+        FROM
+            VW_ST_PRCS_HH_ERR
+        WHERE
+            YYYYMMDD = TO_CHAR(SYSDATE, 'YYYYMMDD')
+        ORDER BY
+            HH ASC
+    </select>
+    
+    <select id="selectTaskQueueRobotNameByWorkSequence" resultMap="RobotNameResultMap">
+        SELECT DISTINCT
+            R.RBT_SEQ,
+            R.RBT_NM
+        FROM
+            TB_BZ_RBT R
+        WHERE 1=1
+            AND R.RBT_SEQ IN (
+                SELECT
+                    TQ.RBT_SEQ
+                FROM
+                    TB_BZ_TASK_QUE TQ
+                JOIN
+                    TB_BZ_WRK_ASGN WA
+                ON
+                    TQ.WRK_SEQ = WA.WRK_SEQ AND WA.RMV_YN = 'N'
+                WHERE 1=1
+                    AND WA.RMV_YN = 'N'
+                    AND TQ.WRK_SEQ = #{workSequence,jdbcType=DECIMAL}
+                )
+        ORDER BY
+            RBT_NM
+    </select>
+    
+    <select id="selectAvailableTargetRobot" resultMap="RobotNameResultMap">
+        SELECT DISTINCT 
+            R.RBT_SEQ,
+            R.RBT_NM
+        FROM
+            TB_BZ_RBT R
+        WHERE 1=1
+            AND R.RMV_YN = 'N'
+            AND R.RBT_SEQ NOT IN (
+                SELECT
+                    WA.RBT_SEQ
+                FROM
+                    TB_BZ_WRK_ASGN WA
+                JOIN
+                    TB_BZ_WRK W
+                ON
+                    WA.WRK_SEQ = W.WRK_SEQ AND W.RMV_YN = 'N' AND WA.RMV_YN = 'N'
+                WHERE 1=1
+                    AND W.RMV_YN = 'N'
+                    AND W.ATV_YN = 'Y'
+                    AND WA.RMV_YN = 'N'
+                    <if test="workSequence != null">
+                    AND W.WRK_SEQ != #{workSequence,jdbcType=DECIMAL}
+                    </if>
+                )
+        ORDER BY
+            RBT_NM
+    </select>
+    
+    <select id="selectByRobotName" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT
+            COUNT(RBT_SEQ)
+        FROM
+            TB_BZ_RBT
+        WHERE
+            RBT_NM = #{robotName, jdbcType=NVARCHAR}
+        AND
+            RMV_YN = 'N'
+    </select>
+    
+    <select id="selectByPcNameAndIp" parameterType="com.mobileleader.rpa.view.model.form.RobotAddForm"
+        resultType="java.lang.Integer">
+        SELECT
+            COUNT(RBT_SEQ)
+        FROM
+            TB_BZ_RBT
+        WHERE
+        
+            PC_NM = #{pcName, jdbcType=NVARCHAR}
+        AND
+            PC_IP = #{pcIpAddress, jdbcType=VARCHAR}
+        AND
+            RMV_YN = 'N'    
+    </select>
+    
+    <select id="selectWorkingRobotSequence" resultType="java.lang.Integer">
+        SELECT
+            RBT_SEQ
+        FROM
+            TB_BZ_RBT
+        WHERE
+            RBT_STS_CD = 'WRKG'
+            <if test="robotSequenceList != null and robotSequenceList.size() > 0">
+                AND RBT_SEQ IN 
+                <foreach collection="robotSequenceList" item="sequence" open="(" close=")" separator=",">
+                    #{sequence,jdbcType=DECIMAL}
+                </foreach>
+            </if>
+    </select>
+    
+    <select id="selectWorkingRobotCount" resultType="java.lang.Integer">
+        SELECT
+            COUNT(R.RBT_SEQ)
+        FROM
+            TB_BZ_RBT R
+        JOIN
+            TB_BZ_WRK_ASGN WA
+        ON
+            R.RBT_SEQ = WA.RBT_SEQ
+        WHERE 1=1
+            AND R.RMV_YN = 'N'
+            AND WA.RMV_YN = 'N'
+            AND R.RBT_STS_CD = 'WRKG'
+            <if test="workSequenceList != null and workSequenceList.size() > 0">
+            AND WA.WRK_SEQ IN
+                <foreach collection="workSequenceList" item="sequence" open="(" close=")" separator=",">
+                    #{sequence,jdbcType=DECIMAL}
+                </foreach>
+            </if>
+    </select>
+    
+    <select id="selectOtherWorkAssignedRobotList" resultType="java.lang.Integer">
+        SELECT 
+            RBT_SEQ
+        FROM (
+        SELECT 
+            R.RBT_SEQ
+        FROM TB_BZ_RBT R
+        JOIN TB_BZ_WRK_ASGN WA
+        ON R.RBT_SEQ = WA.RBT_SEQ
+        JOIN TB_BZ_WRK W
+        ON W.WRK_SEQ = WA.WRK_SEQ
+        WHERE
+            WA.RMV_YN = 'N'
+            AND R.RMV_YN = 'N'
+            AND W.ATV_YN = 'Y'
+            
+        UNION ALL
+        
+        SELECT 
+            R.RBT_SEQ
+        FROM TB_BZ_RBT R
+        JOIN TB_BZ_WRK_ASGN WA
+        ON R.RBT_SEQ = WA.RBT_SEQ
+        JOIN TB_BZ_WRK W
+        ON W.WRK_SEQ = WA.WRK_SEQ
+        WHERE
+            WA.RMV_YN = 'N'
+            AND R.RMV_YN = 'N'
+            AND W.ATV_YN = 'N'
+            <if test="workSequenceList != null and workSequenceList.size() > 0">
+            AND WA.WRK_SEQ IN
+                <foreach collection="workSequenceList" item="sequence" open="(" close=")" separator=",">
+                    #{sequence,jdbcType=DECIMAL}
+                </foreach>
+            </if>
+        )
+        GROUP BY
+            RBT_SEQ
+        HAVING 
+            COUNT(*) > 1
+    </select>
+    
+    <select id="selectOtherWorkAssignedRobotName" resultType="java.lang.String">
+        SELECT
+            RBT_NM
+        FROM
+            TB_BZ_RBT
+        WHERE
+            RBT_SEQ IN (
+                SELECT 
+                    T.RBT_SEQ
+                FROM (
+                    <!-- 활성화된 업무를 갖는 로봇. -->
+                    SELECT
+                        R.RBT_SEQ
+                    FROM
+                        TB_BZ_RBT R
+                    JOIN
+                        TB_BZ_WRK_ASGN WA
+                    ON
+                        R.RBT_SEQ = WA.RBT_SEQ
+                    JOIN
+                        TB_BZ_WRK W
+                    ON
+                        W.WRK_SEQ = WA.WRK_SEQ
+                    WHERE
+                        R.RMV_YN = 'N'
+                        AND W.RMV_YN = 'N'
+                        AND W.ATV_YN = 'Y'
+                        AND W.WRK_SEQ != #{workSequence,jdbcType=DECIMAL}
+
+                    UNION ALL
+                    <!-- 활성화하려는 로봇. -->
+                    SELECT
+                        R.RBT_SEQ
+                    FROM
+                        TB_BZ_RBT R
+                    WHERE 1=1
+                        <if test="robotSequenceList != null and robotSequenceList.size() > 0">
+                        AND R.RBT_SEQ IN
+                            <foreach collection="robotSequenceList" item="sequence" open="(" close=")" separator=",">
+                                #{sequence,jdbcType=DECIMAL}
+                            </foreach>
+                        </if>
+                ) T
+                GROUP BY
+                    T.RBT_SEQ
+                HAVING
+                    COUNT(*) > 1
+            )
+    </select>
+</mapper>

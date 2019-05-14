@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.biz.WorkAssignmentMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.WorkAssignment">
+        <id column="WRK_SEQ" jdbcType="DECIMAL" property="workSequence" />
+        <id column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+        <result column="SCDR_TRGR_NM" jdbcType="VARCHAR" property="schedulerTriggerName" />
+        <result column="SCDR_TRGR_REG_YN" jdbcType="CHAR" property="schedulerTriggerRegistYn" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        WRK_SEQ, RBT_SEQ, SCDR_TRGR_NM, SCDR_TRGR_REG_YN, RMV_YN
+    </sql>
+    
+    <select id="selectByWorkSequence" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_WRK_ASGN
+        WHERE WRK_SEQ = #{workSequence,jdbcType=DECIMAL}
+        AND RMV_YN = 'N'
+        ORDER BY WRK_SEQ DESC
+    </select>
+    
+    <insert id="insert" parameterType="com.mobileleader.rpa.data.dto.biz.WorkAssignment">
+        INSERT INTO TB_BZ_WRK_ASGN (
+            WRK_SEQ,
+            RBT_SEQ,
+            SCDR_TRGR_NM,
+            SCDR_TRGR_REG_YN,
+            RMV_YN
+        ) VALUES (
+            #{workSequence,jdbcType=DECIMAL},
+            #{robotSequence,jdbcType=DECIMAL},
+            #{schedulerTriggerName,jdbcType=VARCHAR},
+            #{schedulerTriggerRegistYn,jdbcType=CHAR},
+            #{removeYn,jdbcType=CHAR}
+        )
+    </insert>
+    
+    <update id="updateByPrimaryKey" parameterType="com.mobileleader.rpa.data.dto.biz.WorkAssignment">
+        UPDATE TB_BZ_WRK_ASGN
+        SET SCDR_TRGR_REG_YN = #{schedulerTriggerRegistYn,jdbcType=CHAR},
+            SCDR_TRGR_NM = #{schedulerTriggerName,jdbcType=VARCHAR},
+            RMV_YN = #{removeYn,jdbcType=CHAR}
+        WHERE WRK_SEQ = #{workSequence,jdbcType=DECIMAL}
+        AND RBT_SEQ = #{robotSequence,jdbcType=DECIMAL}
+    </update>
+    
+    <select id="countByPrimaryKey" parameterType="map" resultType="int">
+        SELECT COUNT(WRK_SEQ)
+        FROM TB_BZ_WRK_ASGN
+        WHERE WRK_SEQ = #{workSequence,jdbcType=DECIMAL}
+        AND RBT_SEQ = #{robotSequence,jdbcType=DECIMAL}
+    </select>
+</mapper>

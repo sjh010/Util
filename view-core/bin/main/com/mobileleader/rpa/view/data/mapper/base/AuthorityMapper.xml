@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.view.data.mapper.base.AuthorityMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.base.Authority">
+        <id column="ATH_SEQ" jdbcType="DECIMAL" property="authoritySequence" />
+        <result column="ATH_NM" jdbcType="NVARCHAR" property="authorityName" />
+        <result column="USE_YN" jdbcType="CHAR" property="useYn" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="MOD_DT" jdbcType="TIMESTAMP" property="modifyDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        ATH_SEQ, ATH_NM, USE_YN, REG_DT, MOD_DT, REG_ID
+    </sql>
+    
+    <select id="selectCount" 
+        parameterType="com.mobileleader.rpa.view.model.form.AuthoritySearchForm" resultType="java.lang.Integer">
+        SELECT COUNT(ATH_SEQ) 
+        FROM (
+              SELECT temp.*, ROWNUM AS RNUM 
+              FROM (
+                    SELECT 
+                        tb_auth.ATH_SEQ, tb_auth.ATH_NM, tb_auth.USE_YN, tb_auth.REG_DT, 
+                        tb_auth.MOD_DT, tb_auth.REG_ID
+                    FROM 
+                        TB_BS_ATH tb_auth
+                    WHERE 1=1
+                    <if test = "authorityName != null and authorityName != ''">
+                        AND ${authorityNameQuery}
+                    </if>
+                    <if test = "useYn != null and useYn != ''">
+                        AND tb_auth.USE_YN = #{useYn, jdbcType=CHAR}
+                    </if>
+                   ) temp
+             )
+    </select>
+    
+    <select id="selectAuthorityList" 
+        parameterType="com.mobileleader.rpa.view.model.form.AuthoritySearchForm" resultMap="BaseResultMap">
+        SELECT * 
+        FROM (
+              SELECT temp.*, ROWNUM AS RNUM 
+              FROM (
+                    SELECT 
+                        tb_auth.ATH_SEQ, tb_auth.ATH_NM, tb_auth.USE_YN, tb_auth.REG_DT, 
+                        tb_auth.MOD_DT, tb_auth.REG_ID
+                    FROM 
+                        TB_BS_ATH tb_auth
+                    WHERE 1=1
+                    <if test = "authorityName != null and authorityName != ''">
+                        AND ${authorityNameQuery}
+                    </if>
+                    <if test = "useYn != null and useYn != ''">
+                        AND tb_auth.USE_YN = #{useYn, jdbcType=CHAR}
+                    </if>
+                    ORDER BY
+                        <choose>
+                            <when test = 'sortKey == "sortAuthorityName"'>
+                            tb_auth.ATH_NM
+                            </when>
+                            <when test = 'sortKey == "sortRegisterId"'>
+                            tb_auth.REG_ID
+                            </when>
+                            <when test = 'sortKey == "sortRegisterDateTime"'>
+                            tb_auth.REG_DT  
+                            </when>
+                            <when test = 'sortKey == "sortModifyDateTime"'>
+                            tb_auth.MOD_DT  
+                            </when>
+                            <when test = 'sortKey == "sortUseYn"'>
+                            tb_auth.USE_YN  
+                            </when>
+                            <otherwise>
+                            tb_auth.MOD_DT DESC
+                            </otherwise>
+                        </choose>
+                        <choose>
+                            <when test = 'sortKey != "sortRegisterId" and sortOrder == "desc"'>
+                             DESC
+                            </when>
+                            <when test = 'sortKey != "sortRegisterId" and sortOrder == "asc"'>
+                             ASC
+                            </when>
+                        </choose>
+                   ) temp
+              WHERE 
+                ROWNUM <![CDATA[ <= ]]> #{endRowNo,jdbcType=INTEGER}
+             )
+        WHERE RNUM <![CDATA[ >= ]]> #{startRowNo,jdbcType=INTEGER}
+    </select>
+    
+</mapper>
