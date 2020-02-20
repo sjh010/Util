@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.biz.TaskQueueMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.TaskQueue">
+        <id column="TASK_QUE_SEQ" jdbcType="DECIMAL" property="taskQueueSequence" />
+        <result column="WRK_SEQ" jdbcType="DECIMAL" property="workSequence" />
+        <result column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+        <result column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="LST_EXEC_DT" jdbcType="TIMESTAMP" property="lastExecuteDateTime" />
+        <result column="NXT_EXEC_DT" jdbcType="TIMESTAMP" property="nextExecuteDateTime" />
+        <result column="TASK_STS_CD" jdbcType="VARCHAR" property="taskStatusCode" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        TASK_QUE_SEQ, WRK_SEQ, RBT_SEQ, PRCS_VSN_SEQ, LST_EXEC_DT, NXT_EXEC_DT, TASK_STS_CD,
+        REG_DT
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_TASK_QUE
+        WHERE TASK_QUE_SEQ = #{taskQueueSequence,jdbcType=DECIMAL}
+    </select>
+    <insert id="insert" parameterType="com.mobileleader.rpa.data.dto.biz.TaskQueue"
+        useGeneratedKeys="true" keyColumn="TASK_QUE_SEQ" keyProperty="taskQueueSequence">
+        <selectKey keyProperty="taskQueueSequence" order="BEFORE" resultType="java.lang.Integer">
+            SELECT SQ_TASK_QUE_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_TASK_QUE (
+            TASK_QUE_SEQ,
+            WRK_SEQ,
+            RBT_SEQ,
+            PRCS_VSN_SEQ,
+            LST_EXEC_DT,
+            NXT_EXEC_DT,
+            TASK_STS_CD,
+            REG_DT
+        ) VALUES (
+            #{taskQueueSequence,jdbcType=DECIMAL},
+            #{workSequence,jdbcType=DECIMAL},
+            #{robotSequence,jdbcType=DECIMAL},
+            #{processVersionSequence,jdbcType=DECIMAL},
+            #{lastExecuteDateTime,jdbcType=TIMESTAMP},
+            #{nextExecuteDateTime,jdbcType=TIMESTAMP},
+            #{taskStatusCode,jdbcType=VARCHAR},
+            SYSDATE
+        )
+    </insert>
+    
+    <select id="selectTopByRobotSequenceAndTaskStatusCode" parameterType="java.util.HashMap" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_TASK_QUE
+        WHERE TASK_QUE_SEQ = (
+            SELECT MIN(TASK_QUE_SEQ) KEEP(DENSE_RANK FIRST ORDER BY TASK_QUE_SEQ ASC)
+            FROM TB_BZ_TASK_QUE
+            WHERE RBT_SEQ = #{robotSequence,jdbcType=DECIMAL}
+            <if test="taskStatusCode != null">
+            AND TASK_STS_CD = #{taskStatusCode,jdbcType=VARCHAR}
+            </if>
+        )
+    </select>
+    
+    <update id="updateTaskStatusCode" parameterType="hashmap">
+        UPDATE 
+            TB_BZ_TASK_QUE
+        SET
+            TASK_STS_CD = #{taskStatusCode, jdbcType=VARCHAR}
+        WHERE
+            TASK_QUE_SEQ = #{taskQueueSequence, jdbcType=DECIMAL}
+    </update>
+    
+    <update id="updateLastExecuteDateTime" parameterType="java.lang.Integer">
+        UPDATE
+            TB_BZ_TASK_QUE
+        SET
+            LST_EXEC_DT = SYSDATE
+        WHERE
+            TASK_QUE_SEQ = #{taskQueueSequence, jdbcType=DECIMAL}
+    </update>
+    
+    <select id="selectTaskQueueProcessInfo" parameterType="java.lang.Integer" resultType="com.mobileleader.rpa.api.data.dto.TaskQueueProcessInfo">
+        SELECT 
+            PRCS_VSN.MJR_VSN || '.' || PRCS_VSN.MNR_VSN AS processVersion,
+            PRCS.PRCS_NM AS processName,
+            PRCS_VSN.PRCS_VSN_SEQ AS processVersionSequence,
+            PRCS.PRCS_SEQ AS processSequence
+        FROM TB_BZ_TASK_QUE TASK 
+            LEFT OUTER JOIN TB_BZ_PRCS_VSN PRCS_VSN
+                ON TASK.PRCS_VSN_SEQ = PRCS_VSN.PRCS_VSN_SEQ
+            LEFT OUTER JOIN TB_BZ_PRCS PRCS
+                ON PRCS_VSN.PRCS_SEQ = PRCS.PRCS_SEQ
+        WHERE 
+            TASK.TASK_QUE_SEQ = #{taskQueueSequence,jdbcType=DECIMAL}
+    </select>
+</mapper>

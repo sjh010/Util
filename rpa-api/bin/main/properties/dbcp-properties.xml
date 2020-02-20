@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>DBCP Properties</comment>
+    <entry key="encryptType">PLAIN</entry>
+    <entry key="driverClassName">oracle.jdbc.driver.OracleDriver</entry>
+    <entry key="url">jdbc:oracle:thin:@61.109.169.41:1521:RPADBDEV</entry>
+    <entry key="username">RPA_APP</entry>
+    <entry key="password">!rpa@pp4151</entry>
+    <entry key="minIdle">10</entry>
+    <entry key="maxIdle">30</entry>
+    <entry key="maxTotal">30</entry>
+    <entry key="maxWaitMillis">10000</entry>
+    <entry key="poolPreparedStatements">true</entry>
+    <entry key="validationQuery">select 1 from dual</entry>
+</properties>

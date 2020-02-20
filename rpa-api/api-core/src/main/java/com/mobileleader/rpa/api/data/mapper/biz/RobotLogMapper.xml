@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.biz.RobotLogMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.RobotLog">
+        <id column="RBT_LOG_SEQ" jdbcType="DECIMAL" property="robotLogSequence" />
+        <result column="RBT_LOG_TYPE_CD" jdbcType="VARCHAR" property="robotLogTypeCode" />
+        <result column="RBT_NM" jdbcType="VARCHAR" property="robotName" />
+        <result column="RMK_CTNT" jdbcType="NVARCHAR" property="remarksContent" />
+        <result column="RBT_LOG_STS_CD" jdbcType="VARCHAR" property="robotLogStatusCode" />
+        <result column="LOG_FILE_GRP_SEQ" jdbcType="DECIMAL" property="logFileGroupSequence" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        RBT_LOG_SEQ, RBT_LOG_TYPE_CD, RBT_NM, RMK_CTNT, RBT_LOG_STS_CD, LOG_FILE_GRP_SEQ,
+        REG_DT, RBT_SEQ
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_RBT_LOG
+        WHERE RBT_LOG_SEQ = #{robotLogSequence,jdbcType=DECIMAL}
+    </select>
+    <insert id="insert" parameterType="com.mobileleader.rpa.data.dto.biz.RobotLog"
+            useGeneratedKeys="true" keyColumn="RBT_LOG_SEQ" keyProperty="robotLogSequence">
+        <selectKey keyProperty="robotLogSequence" order="BEFORE" resultType="java.lang.Integer">
+            SELECT SQ_RBT_LOG_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_RBT_LOG (
+            RBT_LOG_SEQ,
+            RBT_LOG_TYPE_CD,
+            RBT_NM,
+            RMK_CTNT,
+            RBT_LOG_STS_CD,
+            LOG_FILE_GRP_SEQ,
+            REG_DT,
+            RBT_SEQ
+        ) VALUES (
+            #{robotLogSequence,jdbcType=DECIMAL},
+            #{robotLogTypeCode,jdbcType=VARCHAR},
+            #{robotName,jdbcType=VARCHAR},
+            #{remarksContent,jdbcType=NVARCHAR},
+            #{robotLogStatusCode,jdbcType=VARCHAR},
+            #{logFileGroupSequence,jdbcType=DECIMAL},
+            SYSDATE,
+            #{robotSequence,jdbcType=DECIMAL}
+        )
+    </insert>
+</mapper>

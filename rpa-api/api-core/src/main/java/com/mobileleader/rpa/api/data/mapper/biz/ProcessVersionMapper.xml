@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.biz.ProcessVersionMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.ProcessVersion">
+        <id column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="PRCS_SEQ" jdbcType="DECIMAL" property="processSequence" />
+        <result column="MJR_VSN" jdbcType="DECIMAL" property="majorVersion" />
+        <result column="MNR_VSN" jdbcType="DECIMAL" property="minorVersion" />
+        <result column="RMK_CTNT" jdbcType="NVARCHAR" property="remarksContent" />
+        <result column="PRCS_FILE_GRP_SEQ" jdbcType="DECIMAL" property="processFileGroupSequence" />
+        <result column="ATV_YN" jdbcType="CHAR" property="activationYn" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="RMV_DT" jdbcType="TIMESTAMP" property="removeDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="RMV_ID" jdbcType="VARCHAR" property="removeId" />
+    </resultMap>
+    <resultMap id="ProcessVersionInfoMap" type="com.mobileleader.rpa.api.model.response.ProcessVersionInfo" >
+        <id column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="VERSION" jdbcType="VARCHAR" property="version" />
+        <result column="RMK_CTNT" jdbcType="NVARCHAR" property="remarksContent" />
+        <result column="ATV_YN" jdbcType="CHAR" property="activationYn" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="FILE_SEQ_LIST" jdbcType="VARCHAR" property="fileSequenceList" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        PRCS_VSN_SEQ, PRCS_SEQ, MJR_VSN, MNR_VSN, RMK_CTNT, PRCS_FILE_GRP_SEQ, ATV_YN, RMV_YN,
+        REG_DT, RMV_DT, REG_ID, RMV_ID
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_PRCS_VSN
+        WHERE PRCS_VSN_SEQ = #{processVersionSequence,jdbcType=DECIMAL}
+    </select>
+    <insert id="insert" parameterType="com.mobileleader.rpa.data.dto.biz.ProcessVersion"
+            useGeneratedKeys="true" keyColumn="PRCS_VSN_SEQ" keyProperty="processVersionSequence">
+        <selectKey keyProperty="processVersionSequence" resultType="java.lang.Integer" order="BEFORE">
+            SELECT SQ_PRCS_VSN_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_PRCS_VSN (
+            PRCS_VSN_SEQ,
+            PRCS_SEQ,
+            MJR_VSN,
+            MNR_VSN,
+            RMK_CTNT,
+            PRCS_FILE_GRP_SEQ,
+            ATV_YN,
+            RMV_YN,
+            REG_DT,
+            RMV_DT,
+            REG_ID,
+            RMV_ID
+        ) VALUES (
+            #{processVersionSequence,jdbcType=DECIMAL},
+            #{processSequence,jdbcType=DECIMAL},
+            #{majorVersion,jdbcType=DECIMAL},
+            #{minorVersion,jdbcType=DECIMAL},
+            #{remarksContent,jdbcType=NVARCHAR},
+            #{processFileGroupSequence,jdbcType=DECIMAL},
+            #{activationYn,jdbcType=CHAR},
+            #{removeYn,jdbcType=CHAR},
+            SYSDATE,
+            #{removeDateTime,jdbcType=TIMESTAMP},
+            #{registerId,jdbcType=VARCHAR},
+            #{removeId,jdbcType=VARCHAR}
+        )
+    </insert>
+    <select id="selectLatestVersionByProcessSequence" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_PRCS_VSN
+        WHERE PRCS_VSN_SEQ = (
+            SELECT MAX(PRCS_VSN_SEQ) KEEP(DENSE_RANK FIRST ORDER BY MJR_VSN DESC, MNR_VSN DESC) AS LATEST_PRCS_VSN_SEQ
+            FROM TB_BZ_PRCS_VSN
+            WHERE PRCS_SEQ = #{processSequence,jdbcType=DECIMAL}
+        )
+    </select>
+    <select id="selectLatestProcessVersion" parameterType="java.lang.Integer" resultType="java.lang.String">
+        SELECT
+        MJR_VSN || '.' || MNR_VSN AS latestProcessVersion
+        FROM TB_BZ_PRCS_VSN
+        WHERE PRCS_VSN_SEQ = (
+            SELECT MAX(PRCS_VSN_SEQ) KEEP(DENSE_RANK FIRST ORDER BY MJR_VSN DESC, MNR_VSN DESC) AS LATEST_PRCS_VSN_SEQ
+            FROM TB_BZ_PRCS_VSN
+            WHERE PRCS_SEQ = #{processSequence,jdbcType=DECIMAL}
+        )
+    </select>
+    <select id="selectByProcessSequence" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_PRCS_VSN
+        WHERE PRCS_SEQ = #{processSequence,jdbcType=DECIMAL}
+        AND RMV_YN = 'N'
+        ORDER BY PRCS_VSN_SEQ DESC
+    </select>
+    
+    <select id="selectProcessVesionWithFileSequenceByProcessSequence" parameterType="java.lang.Integer" resultMap="ProcessVersionInfoMap">
+        SELECT
+            VSN.PRCS_VSN_SEQ,
+            VSN.MJR_VSN || '.' || VSN.MNR_VSN AS VERSION,
+            VSN.RMK_CTNT,
+            VSN.ATV_YN,
+            TO_CHAR(VSN.REG_DT, 'YYYYMMDD HH24:MI:SS') AS REG_DT,
+            VSN.REG_ID,
+            LISTAGG(F.FILE_SEQ, ',') WITHIN GROUP (ORDER BY F.FILE_SEQ) AS FILE_SEQ_LIST
+        FROM TB_BZ_PRCS_VSN VSN
+        JOIN TB_CM_FILE F ON VSN.PRCS_FILE_GRP_SEQ = F.FILE_GRP_SEQ
+        WHERE VSN.PRCS_SEQ = #{processSequence,jdbcType=DECIMAL}
+        AND VSN.RMV_YN = 'N'
+        GROUP BY VSN.PRCS_VSN_SEQ, VSN.MJR_VSN, VSN.MNR_VSN, VSN.RMK_CTNT, VSN.ATV_YN, VSN.REG_DT, VSN.REG_ID
+        ORDER BY VSN.PRCS_VSN_SEQ DESC
+    </select>
+</mapper>

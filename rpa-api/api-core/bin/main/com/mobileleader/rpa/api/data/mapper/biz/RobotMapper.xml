@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.biz.RobotMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.Robot">
+        <id column="RBT_SEQ" jdbcType="DECIMAL" property="robotSequence" />
+        <result column="RBT_NM" jdbcType="NVARCHAR" property="robotName" />
+        <result column="PC_IP" jdbcType="VARCHAR" property="pcIpAddress" />
+        <result column="PC_NM" jdbcType="NVARCHAR" property="pcName" />
+        <result column="RBT_STS_CD" jdbcType="VARCHAR" property="robotStatusCode" />
+        <result column="LST_ACT_DT" jdbcType="TIMESTAMP" property="lastActionDateTime" />
+        <result column="LST_EXEC_PRCS_SEQ" jdbcType="DECIMAL" property="lastExecuteProcessSequence" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="RMV_DT" jdbcType="TIMESTAMP" property="removeDateTime" />
+        <result column="RMV_ID" jdbcType="VARCHAR" property="removeId" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        RBT_SEQ, RBT_NM, PC_IP, PC_NM, RBT_STS_CD, LST_ACT_DT, LST_EXEC_PRCS_SEQ, RMV_YN,
+        REG_DT, REG_ID, RMV_DT,
+        RMV_ID
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_RBT
+        WHERE RBT_SEQ = #{robotSequence,jdbcType=DECIMAL}
+    </select>
+    <select id="selectByIpAddressAndPcName" parameterType="hashmap" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_RBT
+        WHERE PC_IP = #{pcIpAddress,jdbcType=VARCHAR}
+        AND PC_NM = #{pcName,jdbcType=VARCHAR}
+        AND RMV_YN = 'N'
+    </select>
+    <update id="updateRobotStatusCode" parameterType="hashmap">
+        UPDATE TB_BZ_RBT
+        SET RBT_STS_CD = #{robotStatusCode,jdbcType=VARCHAR}
+        WHERE RBT_SEQ = #{robotSequence,jdbcType=DECIMAL}
+    </update>
+    <update id="updateRobotLastExecuteProcessSequence" parameterType="hashmap">
+        UPDATE TB_BZ_RBT
+        SET LST_ACT_DT = SYSDATE,
+            LST_EXEC_PRCS_SEQ = #{processSequence,jdbcType=DECIMAL}
+        WHERE RBT_SEQ = #{robotSequence,jdbcType=DECIMAL}
+    </update>
+</mapper>

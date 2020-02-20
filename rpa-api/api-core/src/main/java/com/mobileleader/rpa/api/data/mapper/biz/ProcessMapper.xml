@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.biz.ProcessMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.Process">
+        <id column="PRCS_SEQ" jdbcType="DECIMAL" property="processSequence" />
+        <result column="PRCS_NM" jdbcType="NVARCHAR" property="processName" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="CM_STS_MOD_DT" jdbcType="TIMESTAMP" property="configManagementStatusModifyDateTime" />
+        <result column="CM_USR_ID" jdbcType="VARCHAR" property="configManagementUserId" />
+        <result column="CM_STS_CD" jdbcType="VARCHAR" property="configManagementStatusCode" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+        <result column="RMV_DT" jdbcType="TIMESTAMP" property="removeDateTime" />
+        <result column="RMV_ID" jdbcType="VARCHAR" property="removeId" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        PRCS_SEQ, PRCS_NM, REG_DT, REG_ID, CM_STS_MOD_DT, CM_USR_ID, CM_STS_CD, RMV_YN, RMV_DT, RMV_ID
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_PRCS
+        WHERE PRCS_SEQ = #{processSequence,jdbcType=DECIMAL}
+    </select>
+    <insert id="insert" parameterType="com.mobileleader.rpa.data.dto.biz.Process"
+        useGeneratedKeys="true" keyColumn="PRCS_SEQ" keyProperty="processSequence">
+        <selectKey keyProperty="processSequence" resultType="java.lang.Integer" order="BEFORE">
+            SELECT SQ_PRCS_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_PRCS (
+            PRCS_SEQ,
+            PRCS_NM,
+            REG_DT,
+            REG_ID,
+            CM_STS_MOD_DT,
+            CM_USR_ID,
+            CM_STS_CD,
+            RMV_YN,
+            RMV_DT,
+            RMV_ID
+        ) VALUES (
+            #{processSequence,jdbcType=DECIMAL},
+            #{processName,jdbcType=NVARCHAR},
+            SYSDATE,
+            #{registerId,jdbcType=VARCHAR},
+            SYSDATE,
+            #{configManagementUserId,jdbcType=VARCHAR},
+            #{configManagementStatusCode,jdbcType=VARCHAR},
+            'N',
+            NULL,
+            NULL
+        )
+    </insert>
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_PRCS
+        WHERE RMV_YN = 'N'
+        ORDER BY PRCS_SEQ DESC
+    </select>
+    <update id="updateProcessConfigManagementStatus" parameterType="map">
+        UPDATE TB_BZ_PRCS
+        SET
+            CM_STS_MOD_DT = SYSDATE,
+            CM_USR_ID = #{configManagementUserId,jdbcType=VARCHAR},
+            CM_STS_CD = #{configManagementStatusCode,jdbcType=VARCHAR}
+        WHERE PRCS_SEQ = #{processSequence,jdbcType=DECIMAL}
+    </update>
+    <select id="countByProcessName" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(PRCS_NM)
+        FROM TB_BZ_PRCS
+        WHERE PRCS_NM = #{processName,jdbcType=NVARCHAR}
+        AND RMV_YN = 'N'
+    </select>
+</mapper>

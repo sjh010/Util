@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.biz.StudioLogMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.StudioLog">
+        <id column="STDO_LOG_SEQ" jdbcType="DECIMAL" property="studioLogSequence" />
+        <result column="STDO_LOG_TYPE_CD" jdbcType="VARCHAR" property="studioLogTypeCode" />
+        <result column="STDO_USR_ID" jdbcType="VARCHAR" property="studioUserId" />
+        <result column="STDO_USR_NM" jdbcType="NVARCHAR" property="studioUserName" />
+        <result column="STDO_LOG_STS_CD" jdbcType="VARCHAR" property="studioLogStatusCode" />
+        <result column="RMK_CTNT" jdbcType="NVARCHAR" property="remarksContent" />
+        <result column="LOG_FILE_GRP_SEQ" jdbcType="DECIMAL" property="logFileGroupSequence" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        STDO_LOG_SEQ, STDO_LOG_TYPE_CD, STDO_USR_ID, STDO_USR_NM, STDO_LOG_STS_CD, RMK_CTNT,
+        LOG_FILE_GRP_SEQ, REG_DT
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_STDO_LOG
+        WHERE STDO_LOG_SEQ = #{studioLogSequence,jdbcType=DECIMAL}
+    </select>
+    <insert id="insert" parameterType="com.mobileleader.rpa.data.dto.biz.StudioLog"
+            useGeneratedKeys="true" keyColumn="STDO_LOG_SEQ" keyProperty="studioLogSequence">
+        <selectKey keyProperty="studioLogSequence" order="BEFORE" resultType="java.lang.Integer">
+            SELECT SQ_STDO_LOG_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_STDO_LOG (
+            STDO_LOG_SEQ,
+            STDO_LOG_TYPE_CD,
+            STDO_USR_ID,
+            STDO_USR_NM,
+            STDO_LOG_STS_CD,
+            RMK_CTNT,
+            LOG_FILE_GRP_SEQ,
+            REG_DT
+        ) VALUES (
+            #{studioLogSequence,jdbcType=DECIMAL},
+            #{studioLogTypeCode,jdbcType=VARCHAR},
+            #{studioUserId,jdbcType=VARCHAR},
+            #{studioUserName,jdbcType=NVARCHAR},
+            #{studioLogStatusCode,jdbcType=VARCHAR},
+            #{remarksContent,jdbcType=NVARCHAR},
+            #{logFileGroupSequence,jdbcType=DECIMAL},
+            SYSDATE
+        )
+    </insert>
+</mapper>

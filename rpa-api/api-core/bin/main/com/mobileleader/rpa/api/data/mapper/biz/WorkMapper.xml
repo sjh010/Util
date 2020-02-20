@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.biz.WorkMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.Work">
+        <id column="WRK_SEQ" jdbcType="DECIMAL" property="workSequence" />
+        <result column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="RPT_CCL_UNT_CD" jdbcType="VARCHAR" property="repeatCycleUnitCode" />
+        <result column="RPT_CCL" jdbcType="DECIMAL" property="repeatCycle" />
+        <result column="EXEC_STD_VAL" jdbcType="NVARCHAR" property="executeStandardValue" />
+        <result column="EXEC_HM" jdbcType="VARCHAR" property="executeHourminute" />
+        <result column="ATV_YN" jdbcType="CHAR" property="activationYn" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="MOD_DT" jdbcType="TIMESTAMP" property="modifyDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="MOD_ID" jdbcType="VARCHAR" property="modifyId" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+        <result column="RMV_DT" jdbcType="TIMESTAMP" property="removeDateTime" />
+        <result column="RMV_ID" jdbcType="VARCHAR" property="removeId" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        WRK_SEQ, PRCS_VSN_SEQ, RPT_CCL_UNT_CD, RPT_CCL, EXEC_STD_VAL, EXEC_HM, ATV_YN,
+        REG_DT, MOD_DT, REG_ID, MOD_ID, RMV_YN, RMV_DT, RMV_ID
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_WRK
+        WHERE WRK_SEQ = #{workSequence,jdbcType=DECIMAL}
+    </select>
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="RPA_LOG_HOME" value="/home/jeus/logs/app/production" />    
+    <appender name="apiLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${RPA_LOG_HOME}/api/api.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${RPA_LOG_HOME}/api/api.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>30MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d] [%thread] %-5level %logger{36}.%M:%L - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="apiErrorLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${RPA_LOG_HOME}/api/error/apiError.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${RPA_LOG_HOME}/api/error/apiError.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>30MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d] [%thread] %-5level %logger{36}.%M:%L - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+    <root level="WARN">
+        <appender-ref ref="apiLogAppender" />
+        <appender-ref ref="apiErrorLogAppender" />
+    </root>
+</configuration>

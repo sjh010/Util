@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Quartz Properties</comment>
+    <entry key="org.quartz.scheduler.skipUpdateCheck">true</entry>
+    <entry key="org.quartz.scheduler.instanceName">RPADatabaseClusteredScheduler</entry>
+    <entry key="org.quartz.scheduler.instanceId">AUTO</entry>
+    <entry key="org.quartz.scheduler.jobFactory.class">org.quartz.simpl.SimpleJobFactory</entry>
+    <entry key="org.quartz.jobStore.class">org.quartz.impl.jdbcjobstore.JobStoreCMT</entry>
+    <entry key="org.quartz.jobStore.driverDelegateClass">org.quartz.impl.jdbcjobstore.StdJDBCDelegate</entry>
+    <entry key="org.quartz.jobStore.tablePrefix">QRTZ_</entry>
+    <entry key="org.quartz.jobStore.isClustered">true</entry>
+    <entry key="org.quartz.threadPool.class">org.quartz.simpl.SimpleThreadPool</entry>
+    <entry key="org.quartz.threadPool.threadCount">10</entry>
+</properties>

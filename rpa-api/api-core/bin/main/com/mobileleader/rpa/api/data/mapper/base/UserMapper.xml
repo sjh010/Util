@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.base.UserMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.base.User">
+        <id column="USR_SEQ" jdbcType="DECIMAL" property="userSequence" />
+        <result column="USR_ID" jdbcType="VARCHAR" property="userId" />
+        <result column="USR_PW" jdbcType="VARCHAR" property="userPassword" />
+        <result column="USR_NM" jdbcType="NVARCHAR" property="userName" />
+        <result column="USR_EML" jdbcType="VARCHAR" property="userEmail" />
+        <result column="DPT_NM" jdbcType="NVARCHAR" property="departmentName" />
+        <result column="USE_YN" jdbcType="CHAR" property="useYn" />
+        <result column="PW_RST_YN" jdbcType="CHAR" property="passwordResetYn" />
+        <result column="LST_LGN_DT" jdbcType="TIMESTAMP" property="lastLoginDateTime" />
+        <result column="LST_PW_MOD_DT" jdbcType="TIMESTAMP" property="lastPasswordModifyDateTime" />
+        <result column="RMV_YN" jdbcType="CHAR" property="removeYn" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="MOD_DT" jdbcType="TIMESTAMP" property="modifyDateTime" />
+        <result column="RMV_DT" jdbcType="TIMESTAMP" property="removeDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+        <result column="ATH_SEQ" jdbcType="DECIMAL" property="authoritySequence" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        USR_SEQ, USR_ID, USR_PW, USR_NM, USR_EML, DPT_NM, USE_YN, PW_RST_YN, LST_LGN_DT,
+        LST_PW_MOD_DT, RMV_YN,
+        REG_DT, MOD_DT, RMV_DT, REG_ID, ATH_SEQ
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BS_USR
+        WHERE USR_SEQ = #{userSequence,jdbcType=DECIMAL}
+    </select>
+    <select id="selectUserSequenceByUserId" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT
+            USR_SEQ
+        FROM TB_BS_USR
+        WHERE USR_ID = #{userId,jdbcType=VARCHAR}
+    </select>
+</mapper>

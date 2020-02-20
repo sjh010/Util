@@ -1,0 +1,147 @@
+apply plugin: "java"
+apply plugin: "war"
+apply plugin: "eclipse"
+apply plugin: "eclipse-wtp"
+
+webAppDirName = "src/main/webapp"
+
+war {
+    dependsOn(":rpa-api:api-core:jar")
+    dependsOn(":rpa-commons:commons-utils:jar")
+    dependsOn(":rpa-commons:commons-auth:jar")
+    dependsOn(":rpa-commons:commons-data:jar")
+    dependsOn(":rpa-commons:commons-repository:jar")
+}
+
+dependencies {
+    compile project(":rpa-api:api-core")
+    compileOnly lib.servlet
+    testCompile lib.test
+}
+
+processResources {
+    includeEmptyDirs = false
+    from("src/main/webapp")
+    exclude "WEB-INF/*"
+    
+    if(deployTarget != null) {
+        sourceSets.main.resources {
+            exclude '**/dbcp-properties.xml'
+        }
+    
+        from("src/${deployTarget}/resources")
+        include "**/*"
+    }
+}
+
+task initSourceFolders {
+    this.sourceSets*.java.srcDirs*.each {
+        if( !it.exists() ) {
+            it.mkdirs()
+        }
+    }
+ 
+    this.sourceSets*.resources.srcDirs*.each {
+        if( !it.exists() ) {
+            it.mkdirs()
+        }
+    }
+}
+
+subprojects {
+    apply plugin: "eclipse-wtp"
+    
+    dependencies {
+        compile lib."spring-core", lib."spring-web", lib."spring-mvc", lib.aop, lib.log, lib.json, lib."spring-jdbc", lib.jodatime, lib.mybatis
+        if (deployTarget == null) {
+            compile files("${project(':rpa-api').projectDir}/lib/ojdbc7.jar")
+            compile lib.dbcp
+        } else {
+            compileOnly files("${project(':rpa-api').projectDir}/lib/ojdbc7.jar")
+            compileOnly lib.dbcp
+        }
+    }
+    
+    jar {
+        from("src/main/java/com/mobileleader/rpa/api/data") {
+            include "**/*.xml"
+            into("com/mobileleader/rpa/api/data")
+        }
+    }
+    
+    sourceSets*.java.srcDirs*.each {
+        if (it.path.contains("src\\main\\java") && !it.exists()) {
+            it.mkdirs()
+        }
+    }
+}
+
+project(":rpa-api:api-core") {
+    apply plugin: "eclipse-wtp"
+    
+    dependencies {
+        compile project(":rpa-commons:commons-auth")
+        compile project(":rpa-commons:commons-utils")
+        compile project(":rpa-commons:commons-data")
+        compile project(":rpa-commons:commons-repository")
+        compile lib."hibernate-validator", lib."commons-fileupload", lib."http-client", lib."spring-security", lib.quartz
+        compileOnly lib.servlet
+    }
+    
+    jar {
+        archiveName = "ml-rpa-api-core-1.0.0.jar"
+    }
+}
+
+eclipse {
+    sourceSets {
+        main {
+            resources {
+                srcDir "src/main/webapp"
+            }
+        }
+        development {
+            resources {
+                srcDir "src/development/resources"
+            }
+        }
+        staging {
+            resources {
+                srcDir "src/staging/resources"
+            }
+        }
+        production {
+            resources {
+                srcDir "src/production/resources"
+            }
+        }
+        
+        if(deployTarget != "development") {
+            sourceSets.development.resources {
+                exclude "**/*"
+            }
+        }
+        if(deployTarget != "staging") {
+            sourceSets.staging.resources {
+                exclude "**/*"
+            }
+        }
+        if(deployTarget != "production") {
+            sourceSets.production.resources {
+                exclude "**/*"
+            }
+        }
+    }
+    classpath {
+        defaultOutputDir = file("target")
+    }
+    wtp {
+        component {
+            contextPath = project.name
+        }
+        facet {
+            facet name: "java", version: "1.7"
+            facet name: "jst.web", version: "3.0"
+        }
+    }
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>API Production Properties</comment>
+    <entry key="jdbc.dataSourceType">JNDI</entry>
+    <entry key="jdbc.jndiName">rpadb</entry>
+    <entry key="common.file.repository">/home/jeus/rpamanager/production/repository</entry>
+    <entry key="common.file.tempFileExpireSeconds">3600</entry> <!-- 60 sec * 60 min = 1hour -->
+    <entry key="common.file.maxUploadSizePerFile">52428800</entry> <!-- 50mb -->
+    <entry key="quartz.start.scheduler">true</entry> <!-- 스케줄러 동작 여부 -->
+</properties>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.biz.ProcessHistoryMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.ProcessHistory">
+        <id column="PRCS_HSTR_SEQ" jdbcType="DECIMAL" property="processHistorySequence" />
+        <result column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="PRCS_HSTR_TYPE_CD" jdbcType="VARCHAR" property="processHistoryTypeCode" />
+        <result column="RMK_CTNT" jdbcType="NVARCHAR" property="remarksContent" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+        <result column="REG_ID" jdbcType="VARCHAR" property="registerId" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        PRCS_HSTR_SEQ, PRCS_VSN_SEQ, PRCS_HSTR_TYPE_CD, RMK_CTNT, REG_DT, REG_ID
+    </sql>
+    <sql id="Join_Column_List">
+        HSTR.PRCS_HSTR_SEQ, HSTR.PRCS_VSN_SEQ, HSTR.PRCS_HSTR_TYPE_CD, HSTR.RMK_CTNT, HSTR.REG_DT, HSTR.REG_ID
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_PRCS_HSTR
+        WHERE PRCS_HSTR_SEQ = #{processHistorySequence,jdbcType=DECIMAL}
+    </select>
+    <select id="selectByProcessVersionSequence" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BZ_PRCS_HSTR
+        WHERE PRCS_VSN_SEQ = #{processVersionSequence,jdbcType=DECIMAL}
+        ORDER BY PRCS_HSTR_SEQ DESC
+    </select>
+    <select id="selectByProcessVersionSequences" parameterType="list" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Join_Column_List" />
+        FROM TB_BZ_PRCS_HSTR HSTR
+        WHERE HSTR.PRCS_VSN_SEQ IN 
+        <foreach collection="processVersionSequences" item="processVersionSequence" open="(" close=")" separator=",">
+            #{processVersionSequence}
+        </foreach>
+        ORDER BY HSTR.PRCS_HSTR_SEQ DESC
+    </select>
+    <insert id="insert" parameterType="com.mobileleader.rpa.data.dto.biz.ProcessHistory"
+            useGeneratedKeys="true" keyColumn="PRCS_HSTR_SEQ" keyProperty="processHistorySequence">
+        <selectKey keyProperty="processHistorySequence" order="BEFORE" resultType="java.lang.Integer">
+            SELECT SQ_PRCS_HSTR_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_PRCS_HSTR (
+            PRCS_HSTR_SEQ,
+            PRCS_VSN_SEQ,
+            PRCS_HSTR_TYPE_CD,
+            RMK_CTNT,            
+            REG_DT,
+            REG_ID
+        ) VALUES (
+            #{processHistorySequence,jdbcType=DECIMAL},
+            #{processVersionSequence,jdbcType=DECIMAL},
+            #{processHistoryTypeCode,jdbcType=VARCHAR},
+            #{remarksContent,jdbcType=NVARCHAR},
+            SYSDATE,
+            #{registerId,jdbcType=VARCHAR}
+        )
+    </insert>
+</mapper>

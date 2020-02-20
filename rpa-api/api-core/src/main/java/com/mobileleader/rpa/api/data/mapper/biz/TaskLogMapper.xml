@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.biz.TaskLogMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.biz.TaskLog">
+        <id column="TASK_LOG_SEQ" jdbcType="DECIMAL" property="taskLogSequence" />
+        <result column="TASK_QUE_SEQ" jdbcType="DECIMAL" property="taskQueueSequence" />
+        <result column="PRCS_VSN_SEQ" jdbcType="DECIMAL" property="processVersionSequence" />
+        <result column="RBT_NM" jdbcType="NVARCHAR" property="robotName" />
+        <result column="PRCS_NM" jdbcType="NVARCHAR" property="processName" />
+        <result column="PRCS_VSN" jdbcType="VARCHAR" property="processVersion" />
+        <result column="RMK_CTNT" jdbcType="NVARCHAR" property="remarksContent" />
+        <result column="TASK_LOG_STS_CD" jdbcType="VARCHAR" property="taskLogStatusCode" />
+        <result column="LOG_FILE_GRP_SEQ" jdbcType="DECIMAL" property="logFileGroupSequence" />
+        <result column="REG_DT" jdbcType="TIMESTAMP" property="registerDateTime" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        TASK_LOG_SEQ, TASK_QUE_SEQ, PRCS_VSN_SEQ, RBT_NM, PRCS_NM, PRCS_VSN, RMK_CTNT, TASK_LOG_STS_CD,
+        LOG_FILE_GRP_SEQ, REG_DT
+    </sql>
+    <insert id="insert" parameterType="com.mobileleader.rpa.data.dto.biz.TaskLog"
+            useGeneratedKeys="true" keyColumn="TASK_LOG_SEQ" keyProperty="taskLogSequence">
+        <selectKey resultType="java.lang.Integer" order="BEFORE" keyProperty="taskLogSequence">
+            SELECT SQ_TASK_LOG_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TB_BZ_TASK_LOG (
+            TASK_LOG_SEQ,
+            TASK_QUE_SEQ,
+            PRCS_VSN_SEQ,
+            RBT_NM,
+            PRCS_NM,
+            PRCS_VSN,
+            RMK_CTNT,
+            TASK_LOG_STS_CD,
+            LOG_FILE_GRP_SEQ,
+            REG_DT
+        ) VALUES (
+            #{taskLogSequence,jdbcType=DECIMAL},
+            #{taskQueueSequence,jdbcType=DECIMAL},
+            #{processVersionSequence,jdbcType=DECIMAL},
+            #{robotName,jdbcType=NVARCHAR},
+            #{processName,jdbcType=NVARCHAR},
+            #{processVersion,jdbcType=VARCHAR},
+            #{remarksContent,jdbcType=NVARCHAR},
+            #{taskLogStatusCode,jdbcType=VARCHAR},
+            #{logFileGroupSequence,jdbcType=DECIMAL},
+            SYSDATE
+        )
+    </insert>
+</mapper>

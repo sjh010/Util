@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mobileleader.rpa.api.data.mapper.base.AuthorityFunctionMapper">
+    <resultMap id="BaseResultMap" type="com.mobileleader.rpa.data.dto.base.AuthorityFunction">
+        <id column="ATH_SEQ" jdbcType="DECIMAL" property="authoritySequence" />
+        <id column="FNC_CD" jdbcType="VARCHAR" property="functionCode" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        ATH_SEQ, FNC_CD
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM TB_BS_ATH_FNC
+        WHERE ATH_SEQ = #{authoritySequence,jdbcType=DECIMAL}
+        AND FNC_CD = #{functionCode,jdbcType=VARCHAR}
+    </select>
+</mapper>
