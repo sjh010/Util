@@ -1,0 +1,169 @@
+apply plugin: "java"
+apply plugin: "war"
+apply plugin: "eclipse"
+apply plugin: "eclipse-wtp"
+
+webAppDirName = "src/main/webapp"
+
+war {
+    dependsOn(":rpa-view:view-core:jar")
+    dependsOn(":rpa-commons:commons-utils:jar")
+    dependsOn(":rpa-commons:commons-auth:jar")
+    dependsOn(":rpa-commons:commons-data:jar")
+    dependsOn(":rpa-commons:commons-repository:jar")
+    exclude('images/**')
+    exclude('css/**')
+    exclude('js/**')
+    exclude('fonts/**')
+}
+
+war.doLast {
+    tasks.copyStaticResources.execute()
+    tasks.makeZip.execute()
+}
+
+task copyStaticResources(type: Copy, dependsOn: war) {
+    from('src/main/webapp')
+    into("${buildDir}/static-resources")
+    exclude('WEB-INF/**')
+}
+
+task makeZip(type: Zip, dependsOn: copyStaticResources) {
+    from "${buildDir}/static-resources"
+    destinationDir = file("${buildDir}/libs")
+    extension = "zip"
+    baseName = 'rpa-view-static'
+}
+
+dependencies {
+    compile project(":rpa-view:view-core")
+    compileOnly lib.servlet
+    testCompile lib.test
+}
+
+processResources {
+    includeEmptyDirs = false
+    from("src/main/webapp")
+    exclude 'WEB-INF/*', 'css/*', 'js/*', 'images/*', 'fonts/*'
+
+    if(deployTarget != null) {
+        sourceSets.main.resources {
+            exclude '**/dbcp-properties.xml'
+        }
+    
+        from("src/${deployTarget}/resources")
+        include "**/*"
+    }
+}
+
+task initSourceFolders {
+    this.sourceSets*.java.srcDirs*.each {
+        if( !it.exists() ) {
+            it.mkdirs()
+        }
+    }
+ 
+    this.sourceSets*.resources.srcDirs*.each {
+        if( !it.exists() ) {
+            it.mkdirs()
+        }
+    }
+}
+
+subprojects { 
+    apply plugin: "eclipse-wtp"
+        
+    dependencies {
+        compile lib."spring-core", lib."spring-web", lib."spring-mvc", lib.aop, lib.log, lib.json, lib."spring-jdbc", lib.mybatis, lib."hibernate-validator", lib.guava
+    }
+    
+    jar {
+        from("src/main/java/com/mobileleader/rpa/view/data") {
+            include "**/*.xml"
+            into("com/mobileleader/rpa/view/data")
+        }
+    }
+    
+    sourceSets*.java.srcDirs*.each {
+        if (it.path.contains("src\\main\\java") && !it.exists()) {
+            it.mkdirs()
+        }
+    }
+}
+
+project(":rpa-view:view-core") {
+    apply plugin: "eclipse-wtp"
+    
+    dependencies {
+        compile project(":rpa-commons:commons-utils")
+        compile project(":rpa-commons:commons-auth")
+        compile project(":rpa-commons:commons-data")
+        compile project(":rpa-commons:commons-repository")
+        compile lib.jasypt, lib.jsp, lib.poi, lib."spring-security", lib."commons-fileupload", lib."spring-web", lib."http-client"
+        compileOnly lib.servlet
+        if (deployTarget == null) {
+            compile files("${project(':rpa-view').projectDir}/lib/ojdbc7.jar")
+            compile lib.dbcp
+        } else {
+            compileOnly files("${project(':rpa-view').projectDir}/lib/ojdbc7.jar")
+            compileOnly lib.dbcp
+        }
+    }
+    
+    jar {
+        archiveName = "ml-rpa-view-core-1.0.0.jar"
+    }
+}
+
+eclipse {
+    sourceSets {
+        main {
+            resources {
+                srcDir "src/main/webapp"
+            }
+        }
+        development {
+            resources {
+                srcDir "src/development/resources"
+            }
+        }
+        staging {
+            resources {
+                srcDir "src/staging/resources"
+            }
+        }
+        production {
+            resources {
+                srcDir "src/production/resources"
+            }
+        }
+        
+        if(deployTarget != "development") {
+            sourceSets.development.resources {
+                exclude "**/*"
+            }
+        }
+        if(deployTarget != "staging") {
+            sourceSets.staging.resources {
+                exclude "**/*"
+            }
+        }
+        if(deployTarget != "production") {
+            sourceSets.production.resources {
+                exclude "**/*"
+            }
+        }
+    }
+    classpath {
+        defaultOutputDir = file("target")
+    }
+    wtp {
+        component {
+            contextPath = project.name
+        }
+        facet {
+            facet name: "java", version: "1.7"
+            facet name: "jst.web", version: "3.0"
+        }
+    }
+}

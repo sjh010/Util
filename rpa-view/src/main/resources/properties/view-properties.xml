@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>View Properties</comment>
+    <entry key="jdbc.dataSourceType">DBCP2</entry>
+    <entry key="api.server.hostAddress">localhost</entry>
+    <entry key="api.server.port">7100</entry>
+    <entry key="api.server.rootContext">/rpa/api</entry>
+    <entry key="common.file.repository">D:/repository/</entry>
+    <entry key="common.file.maxUploadSizePerFile">52428800</entry> <!-- 50mb -->
+    <entry key="web.session.timeout">1800</entry> <!-- 60 sec * 30 min, 30 minutes -->
+</properties>

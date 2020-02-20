@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="RPA_LOG_HOME" value="/home/jeus/logs/app/development" />    
+    <appender name="viewLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${RPA_LOG_HOME}/view/view.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${RPA_LOG_HOME}/view/view.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>30MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d] [%thread] %-5level %logger{36}.%M:%L - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="viewErrorLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${RPA_LOG_HOME}/view/error/viewError.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${RPA_LOG_HOME}/view/error/viewError.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>30MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d] [%thread] %-5level %logger{36}.%M:%L - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+    <logger name="com.mobileleader.rpa.view.data.mapper" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="viewLogAppender"/>
+    </logger>
+    <root level="INFO">
+        <appender-ref ref="viewLogAppender" />
+        <appender-ref ref="viewErrorLogAppender" />
+    </root>
+</configuration>

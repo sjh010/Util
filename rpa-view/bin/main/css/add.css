@@ -1,0 +1,27 @@
+/*
+ * CUSTOM CSS FILE 
+ */
+ 
+/* button disabled */
+.btn-disabled {
+    opacity: 0.2 !important;
+    cursor: default !important;
+}
+
+/* table row click */
+.tr-select {
+    background-color : #dfe8ff !important;
+}
+
+.tb-robot-list-body>tr:first-child>td{
+    border-top : none !important;
+}
+
+.tb-robot-list-body>tr:last-child>td{
+    border-bottom : none !important;
+}
+
+.daypick{
+    display: inline-table;
+    margin-top: 10px;
+}
